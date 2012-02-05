@@ -1,5 +1,27 @@
+/*
+ *  Smart Auto Replier (SAR) - auto replier plugin for Miranda IM
+ *
+ *  Copyright (C) 2005 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
+ *
+ *      This file is part of SAR.
+ *
+ *  SAR is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  SAR is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with SAR.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "stdafx.h"
 #include "comfunc.h"
+#include "shlobj.h"
 
 extern LPTSTR g_strPluginName;
 extern HINSTANCE hInst;
@@ -22,7 +44,21 @@ bool NotifyAboutWrongSettings(LPTSTR szFile)
 /// forming path
 bool MakeFullPath(LPTSTR lpRetval, DWORD dwSize, LPTSTR lpFile)
 {
-	GetModuleFileName(hInst, lpRetval, dwSize);
+	HRESULT hr	 = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, lpRetval);
+	size_t  nLen = _tcslen(lpRetval);
+
+	if (lpRetval[nLen - 1] != TEXT('\\'))
+	{
+		_tcscat(lpRetval, TEXT("\\Sar\\"));
+	}
+	else
+	{
+		_tcscat(lpRetval, TEXT("Sar\\"));
+	}
+
+	_tcscat(lpRetval, lpFile);
+
+	/*GetModuleFileName(hInst, lpRetval, dwSize);
 	TCHAR *ptrPos = _tcsrchr(lpRetval, '\\');
 	if (ptrPos)
 	{
@@ -33,7 +69,7 @@ bool MakeFullPath(LPTSTR lpRetval, DWORD dwSize, LPTSTR lpFile)
 	{
 		_RPT0(_CRT_WARN, "MakeFullPath - unable to form path");
 		return false;
-	}
+	}*/
 	return true;
 }
 
