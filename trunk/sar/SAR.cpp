@@ -1,4 +1,24 @@
-// IMRS.cpp : Defines the entry point for the DLL application.
+/*
+ *  Smart Auto Replier (SAR) - auto replier plugin for Miranda IM
+ *
+ *  Copyright (C) 2005 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
+ *
+ *      This file is part of SAR.
+ *
+ *  SAR is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  SAR is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with SAR.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "stdafx.h"
 #include "resource.h"
 
@@ -11,10 +31,10 @@
 #define ICQPROTONAME		"SAR"
 #define ICQPROTODECRSHORT   "Smart Auto Replier"
 #define ICQPROTODECR		"Smart Auto Replier is able to reply on all incoming messages, making possible use of rules that are applied to specific contacts."
-#define DEVNAME				"Shcherbyna Volodymyr"
+#define DEVNAME				"Volodymyr M. Shcherbyna"
 #define DEVMAIL				"volodymyr@shcherbyna.com"
-#define DEVCOPYRIGHT		"© 2005-2012 Shcheryna Volodymyr, www.shcherbyna.com"
-#define DEVWWW				"http://code.google.com/p/smart-auto-replier/"
+#define DEVCOPYRIGHT		"© 2005-2012 Volodymyr M. Shcherbyna, www.shcherbyna.com"
+#define DEVWWW				"http://shcherbyna.com/forum/viewforum.php?f=8"
 #define GLOB_HOOKS			2
 
 /// global menu items strings...
@@ -42,7 +62,7 @@ PLUGININFO pluginInfo =
 {
 	sizeof(PLUGININFO),
 	ICQPROTODECRSHORT,
-	PLUGIN_MAKE_VERSION(0, 0, 0, 9),
+	PLUGIN_MAKE_VERSION(0, 0, 0, 1),
 	ICQPROTODECR,
 	DEVNAME,
 	DEVMAIL,

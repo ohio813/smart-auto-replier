@@ -1,5 +1,27 @@
+/*
+ *  Smart Auto Replier (SAR) - auto replier plugin for Miranda IM
+ *
+ *  Copyright (C) 2005 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
+ *
+ *      This file is part of SAR.
+ *
+ *  SAR is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  SAR is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with SAR.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "stdafx.h"
 #include "crushlog.h"
+#include "shlobj.h"
 
 extern HINSTANCE hInst;
 extern CCrushLog CRUSHLOGOBJ;
@@ -31,7 +53,23 @@ void CCrushLog::DeInit(void)
 /// init internal data...
 void CCrushLog::Init(void)
 {
-	if (_tcslen(m_szLogPath) == 0) /// let's get path to log file
+	HRESULT hr	 = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, m_szLogPath);
+	size_t  nLen = _tcslen(m_szLogPath);
+
+	if (m_szLogPath[nLen - 1] != TEXT('\\'))
+	{
+		_tcscat(m_szLogPath, TEXT("\\Sar\\"));
+	}
+	else
+	{
+		_tcscat(m_szLogPath, TEXT("Sar\\"));
+	}
+
+	CreateDirectory(m_szLogPath, NULL);
+	
+	_tcscat(m_szLogPath, LOG_FILENAME);
+
+	/*if (_tcslen(m_szLogPath) == 0) /// let's get path to log file
 	{
 		GetModuleFileName(hInst, m_szLogPath, sizeof(m_szLogPath) * sizeof(TCHAR));
 		
@@ -45,7 +83,7 @@ void CCrushLog::Init(void)
 		{
 			_RPT0(_CRT_WARN, "CCrushLog::CCrushLog - unable to form path");
 		}
-	}
+	}*/
 
 	InitializeCriticalSection(&m_critSect);
 }
@@ -68,7 +106,7 @@ void CCrushLog::InternalProtect(LPTSTR	FunctionName, LPTSTR FileName,
 	_tcscat(tch, CCrushLog::m_szLogPath);
 	_tcscat(tch, Translate("\r\n to developer."));
 
-	::MessageBox (NULL, tch, Translate("AutoReplier crush. Support: ICQ# 161762046"), MB_OK);
+	::MessageBox (NULL, tch, Translate("Smart Auto Replier crash. Send the log file to http://shcherbyna.com/forum/viewforum.php?f=8"), MB_OK);
 }
 
 /// saving log information
