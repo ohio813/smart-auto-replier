@@ -1,0 +1,203 @@
+#include "StdAfx.h"
+#include "optionsdlg.h"
+#include "resource.h"
+
+/// need ptr to get/set info
+extern CMessagesHandler *g_pMessHandler;
+extern CCrushLog CRUSHLOGOBJ;
+extern LPTSTR g_strPluginName;
+
+COptionsDlg g_optionsDlg;
+
+BOOL CALLBACK DlgProcCluiOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	if (g_optionsDlg.m_hWnd == NULL)
+		g_optionsDlg.Attach(hwndDlg);
+
+	LRESULT lre		= 0;
+	DWORD	dwId	= 0;
+
+	return g_optionsDlg.ProcessWindowMessage(hwndDlg, msg, wParam, lParam, lre, dwId);
+}
+
+COptionsDlg::COptionsDlg(void)
+{
+}
+
+COptionsDlg::~COptionsDlg(void)
+{
+}
+
+BOOL COptionsDlg::PreTranslateMessage(MSG* pMsg)
+{
+	return ::IsDialogMessage(m_hWnd, pMsg);
+}
+
+/// process OnInitDialog
+LRESULT COptionsDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+	TranslateDialogDefault(m_hWnd);
+
+	if (!g_pMessHandler)
+		return FALSE;
+
+	m_editReplayDelay = GetDlgItem(IDC_EDIT_REPLAYDELAY);
+	m_editHeaderMessage = GetDlgItem(IDC_EDIT_HEADER);
+	m_editMessageText = GetDlgItem(IDC_EDIT_MESSAGE);
+
+	int nLength = g_pMessHandler->getSettings().getSettings().ReplayDelay;
+	if (nLength == 0)
+		nLength = SETTINGS_DEF_COMMON_VALREPDELAY;
+
+	TCHAR strNumber[MAX_PATH] = {0};
+	m_editReplayDelay.SetWindowText(_itot(nLength, strNumber, 10));
+			
+	LPCSTR str = g_pMessHandler->getSettings().getSettings().ptrHeader;
+	m_editHeaderMessage.SetWindowText(str);
+	str = g_pMessHandler->getSettings().getSettings().ptrMessage;
+	m_editMessageText.SetWindowText(str);
+
+	if (m_szHeader)
+	{
+		VirtualFree (m_szHeader, NULL, MEM_RELEASE);
+		m_szHeader = NULL;
+	}
+
+	m_szHeader = reinterpret_cast<char*>(VirtualAlloc (NULL, SETTINGS_HEADER_MAXVALENGTH, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE));
+	if (!m_szHeader)
+		return FALSE;
+
+	m_editHeaderMessage.GetWindowText(m_szHeader, SETTINGS_HEADER_MAXVALENGTH);
+		
+	if (m_szMessage)
+	{
+		VirtualFree (m_szMessage, NULL, MEM_RELEASE);
+		m_szMessage = NULL;
+	}
+
+	m_szMessage = reinterpret_cast<char*>(VirtualAlloc (NULL, SETTINGS_MESSAGE_MAXVALENGTH, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE));
+	if (!m_szMessage)
+		return FALSE;
+
+	m_editMessageText.GetWindowText(m_szMessage, SETTINGS_MESSAGE_MAXVALENGTH);
+
+	return FALSE;
+}
+
+/// process WM_DESTROY
+LRESULT COptionsDlg::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+	::DestroyWindow(m_hWnd);	
+
+	VirtualFree(m_szHeader, NULL, MEM_RELEASE);
+	VirtualFree(m_szMessage, NULL, MEM_RELEASE);
+	m_szHeader = NULL;
+	m_szMessage = NULL;
+	g_optionsDlg.m_hWnd = NULL;
+
+	return FALSE;
+}
+
+void COptionsDlg::OnNotifyAboutChanges(void)
+{
+	SendMessage(GetParent(), PSM_CHANGED, 0, 0);
+}
+
+/// handler of typing in replay delay edit box
+LRESULT COptionsDlg::OnEditReply(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	int nValue = GetDlgItemInt(IDC_EDIT_REPLAYDELAY, NULL, FALSE);
+	if (nValue == 0)
+	{				
+		MessageBox (Translate("Zero is not acceptable value"), g_strPluginName, MB_OK);
+		SetDlgItemInt(IDC_EDIT_REPLAYDELAY, SETTINGS_DEF_COMMON_VALREPDELAY, FALSE);
+		nValue = SETTINGS_DEF_COMMON_VALREPDELAY;
+	}
+	if (nValue != m_nReplayDelay)
+	{
+		m_nReplayDelay = nValue;
+		OnNotifyAboutChanges();
+	}
+
+	return FALSE;
+}
+
+LRESULT COptionsDlg::OnNotify(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
+{
+	switch (((LPNMHDR)lParam)->code)
+	{
+		case PSN_APPLY:
+		{	/// apply our changes...
+			REPLYER_SETTINGS sett = {0};
+			sett.ptrHeader = m_szHeader;
+			sett.ptrMessage = m_szMessage;
+			sett.bEnabled = g_pMessHandler->getSettings().getSettings().bEnabled;
+			sett.ReplayDelay = m_nReplayDelay;
+
+			g_pMessHandler->getSettings().setSettings(sett);
+		}
+	}
+
+	return FALSE;
+}
+
+LRESULT COptionsDlg::OnEditHeader(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	if (!m_szHeader)
+		return FALSE;
+
+	int nLength = m_editHeaderMessage.GetWindowTextLength();
+
+	if (nLength > SETTINGS_HEADER_MAXVALENGTH)
+	{
+		MessageBox (Translate("too big size"), g_strPluginName, MB_OK);
+		m_editHeaderMessage.SetWindowText(m_szHeader);
+		return FALSE;
+	}
+	nLength++;
+	LPTSTR str1 = reinterpret_cast<char*>(VirtualAlloc (NULL, nLength, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE));
+	if (!str1)
+		return FALSE;
+	m_editHeaderMessage.GetWindowText(str1, nLength);
+	if (_tcscmp(m_szHeader, str1) != 0)
+	{
+		_tcscpy(m_szHeader, str1);
+		OnNotifyAboutChanges();
+	}
+	VirtualFree (str1, NULL, MEM_RELEASE);
+
+	return FALSE;
+}
+
+LRESULT COptionsDlg::OnEditMessage(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	if (!m_szMessage)
+		return FALSE;
+
+	int nLength = m_editMessageText.GetWindowTextLength();
+
+	if (nLength > SETTINGS_MESSAGE_MAXVALENGTH)	
+	{
+		MessageBox (Translate("too big size"), g_strPluginName, MB_OK);
+		m_editMessageText.SetWindowText(m_szMessage);
+
+		return FALSE;
+	}
+	nLength++;
+	LPTSTR str2 = reinterpret_cast<char*>(VirtualAlloc (NULL, nLength, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE));
+
+	if (!str2)
+		return FALSE;
+	
+	m_editMessageText.GetWindowText(str2, nLength);
+
+	if (_tcscmp(m_szMessage, str2) != 0)
+	{
+		_tcscpy(m_szMessage, str2);
+		OnNotifyAboutChanges();
+	}
+
+	VirtualFree (str2, NULL, MEM_RELEASE);
+
+	return FALSE;
+}
