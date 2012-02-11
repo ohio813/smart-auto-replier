@@ -1,7 +1,7 @@
 /*
  *  Smart Auto Replier (SAR) - auto replier plugin for Miranda IM
  *
- *  Copyright (C) 2005 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
+ *  Copyright (C) 2004 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
  *
  *      This file is part of SAR.
  *
@@ -155,8 +155,8 @@ BEGIN_PROTECT_AND_LOG_CODE
 			szreadme = new TCHAR[MAX_PATH + 1];
 			if (szreadme)
 			{			
-				MakeFullPath(szreadme, MAX_PATH, READMEFILE);
-				::ShellExecute(NULL, "open", szreadme, NULL, NULL, SW_SHOW);
+				//MakeFullPath(szreadme, MAX_PATH, READMEFILE);
+				::ShellExecute(NULL, "open", TEXT("http://www.shcherbyna.com/?page_id=1747"), NULL, NULL, SW_SHOW);
 				//::ShellExecute(NULL, "open", TEXT("http://shcherbyna.com/forum/viewforum.php?f=8"), NULL, NULL, SW_SHOW);
 
 				delete szreadme;

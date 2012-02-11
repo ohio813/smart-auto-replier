@@ -59,7 +59,7 @@
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Template|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Template|Win32'" />
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\wtl\Include;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\lualib;..\wtl\Include;$(IncludePath)</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\wtl\Include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -75,8 +75,8 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>shell32.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>C:\Program Files (x86)\Miranda IM\Plugins\SAR.dll</OutputFile>
+      <AdditionalDependencies>D:\Projects\smart-auto-replier\sar\Debug\lualib.lib;shell32.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>C:\Program Files (x86)\Miranda IM\Plugins\Sar.dll</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)SAR.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
@@ -110,10 +110,13 @@
       </DataExecutionPrevention>
       <ImportLibrary>$(OutDir)SAR.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalDependencies>D:\Projects\smart-auto-replier\sar\Release\lualib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ActionsHandler.cpp" />
+    <ClCompile Include="LuaBridge.cpp" />
+    <ClCompile Include="LuaScript.cpp" />
     <ClCompile Include="SAR.cpp" />
     <ClCompile Include="comfunc.cpp" />
     <ClCompile Include="Crc32Static.cpp" />
@@ -121,6 +124,7 @@
     <ClCompile Include="MessagesHandler.cpp" />
     <ClCompile Include="ModeMessHandler.cpp" />
     <ClCompile Include="RulesStorage.cpp" />
+    <ClCompile Include="SarLuaScript.cpp" />
     <ClCompile Include="ScriptsReader.cpp" />
     <ClCompile Include="SettingsHandler.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -140,11 +144,15 @@
     <ClInclude Include="comlogging.h" />
     <ClInclude Include="Crc32Static.h" />
     <ClInclude Include="CrushLog.h" />
+    <ClInclude Include="LuaBridge.h" />
+    <ClInclude Include="luainc.h" />
+    <ClInclude Include="LuaScript.h" />
     <ClInclude Include="MessagesHandler.h" />
     <ClInclude Include="ModeMessHandler.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="RuleItem.h" />
     <ClInclude Include="RulesStorage.h" />
+    <ClInclude Include="SarLuaScript.h" />
     <ClInclude Include="ScriptsReader.h" />
     <ClInclude Include="SettingsHandler.h" />
     <ClInclude Include="stdafx.h" />
@@ -158,6 +166,10 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="SAR.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="sar.html" />
+    <None Include="sar.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

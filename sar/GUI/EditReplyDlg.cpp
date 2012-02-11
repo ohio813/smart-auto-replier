@@ -1,7 +1,7 @@
 /*
  *  Smart Auto Replier (SAR) - auto replier plugin for Miranda IM
  *
- *  Copyright (C) 2005 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
+ *  Copyright (C) 2004 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
  *
  *      This file is part of SAR.
  *
@@ -41,12 +41,7 @@ LRESULT CEditReplyDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 {	
 	TranslateDialogDefault(m_hWnd);
 	m_editReplyText = GetDlgItem(IDC_ED_TEXT);
-	m_editReplyHeader = GetDlgItem(IDC_ED_HEADER);
-
-	if (m_commRule.Header)
-	{
-		m_editReplyHeader.SetWindowText(m_commRule.Header);
-	}
+	
 	if (m_commRule.Message)
 	{
 		m_editReplyText.SetWindowText(m_commRule.Message);
@@ -59,22 +54,7 @@ LRESULT CEditReplyDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 
 LRESULT CEditReplyDlg::OnBtnOKClicked(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	int nLength = m_editReplyHeader.GetWindowTextLength();
-
-	if (nLength > SETTINGS_HEADER_MAXVALENGTH)
-	{
-		MessageBox (Translate("header is too big"), g_strPluginName, MB_OK);
-		//m_editReplyHeader.SetWindowText(m_szHeader);
-		return FALSE;
-	}
-
-	VirtualFree ((LPVOID)m_commRule.Header , 0, MEM_RELEASE);
-
-	nLength++;
-	m_commRule.Header = reinterpret_cast<char*>(VirtualAlloc (NULL, nLength, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE));
-	if (!m_commRule.Header)
-		return FALSE;
-	m_editReplyHeader.GetWindowText((LPTSTR)m_commRule.Header, nLength);
+	int nLength = 0;
 
 	VirtualFree ((LPVOID)m_commRule.Message, 0, MEM_RELEASE);
 

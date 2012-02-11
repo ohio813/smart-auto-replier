@@ -1,7 +1,7 @@
 /*
  *  Smart Auto Replier (SAR) - auto replier plugin for Miranda IM
  *
- *  Copyright (C) 2005 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
+ *  Copyright (C) 2004 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
  *
  *      This file is part of SAR.
  *
@@ -30,7 +30,6 @@ extern CMessagesHandler * g_pMessHandler;
 /// ctor...
 CRulesStorage::CRulesStorage(void) : m_hFile(NULL)
 {
-	m_comItem.Header = NULL;
 	m_comItem.Message = NULL;
 BEGIN_PROTECT_AND_LOG_CODE
 	MakeFullPath(m_szSettFileName, sizeof(m_szSettFileName), STORAGE_NAME);
@@ -76,13 +75,11 @@ BEGIN_PROTECT_AND_LOG_CODE
 	{
 		RULE_ITEM & i = it->second;
 		VirtualFree (i.ContactName, NULL, MEM_RELEASE);
-		VirtualFree (i.ReplyAction, NULL, MEM_RELEASE);
+		//VirtualFree (i.ReplyAction, NULL, MEM_RELEASE);
 		VirtualFree (i.ReplyText, NULL, MEM_RELEASE);
 		VirtualFree (i.RuleName, NULL, MEM_RELEASE);
 	}
-
-	VirtualFree (m_comItem.Header, NULL, MEM_RELEASE);
-	m_comItem.Header = NULL;
+	
 	VirtualFree (m_comItem.Message, NULL, MEM_RELEASE);
 	m_comItem.Message = NULL;
 	
@@ -200,7 +197,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 	RawWriteDataBufByChunk(item.RuleName);
 	RawWriteDataBufByChunk(item.ContactName);
 	RawWriteDataBufByChunk(item.ReplyText);
-	RawWriteDataBufByChunk(item.ReplyAction);
+	//RawWriteDataBufByChunk(item.ReplyAction);
 END_PROTECT_AND_LOG_CODE
 }
 
@@ -233,7 +230,6 @@ BEGIN_PROTECT_AND_LOG_CODE
 	if (bFileExists == false)
 	{
 		ClearCommonMessages();
-		m_comItem.Header = SETTINGS_DEF_HEADER;
 		m_comItem.Message = SETTINGS_DEF_MESSAGE;
 		SetCommonMessages();
 	}
@@ -255,9 +251,8 @@ BEGIN_PROTECT_AND_LOG_CODE
 	}
 	else
 	{
-		dwSize -= _tcslen(SETTINGS_DEF_HEADER);
 		dwSize -= _tcslen(SETTINGS_DEF_MESSAGE);
-		dwSize -= 2 * sizeof(int);
+		dwSize -= 1 * sizeof(int);
 	}
 
 	while (dwSize)
@@ -345,39 +340,39 @@ BEGIN_PROTECT_AND_LOG_CODE
 
 		dwSize -= nLength;
 
-		bReaded = ReadFile (m_hFile, &nLength, sizeof(nLength), &dwReaded, NULL);
-		if (bReaded == FALSE || dwReaded != sizeof(nLength))
-		{	
-			VirtualFree (it.RuleName, 0, MEM_RELEASE);
-			VirtualFree (it.ContactName, 0, MEM_RELEASE);
-			VirtualFree (it.ReplyText, 0, MEM_RELEASE);
-			bFailed = true;
-			break;
-		}
+		//bReaded = ReadFile (m_hFile, &nLength, sizeof(nLength), &dwReaded, NULL);
+		//if (bReaded == FALSE || dwReaded != sizeof(nLength))
+		//{	
+		//	VirtualFree (it.RuleName, 0, MEM_RELEASE);
+		//	VirtualFree (it.ContactName, 0, MEM_RELEASE);
+		//	VirtualFree (it.ReplyText, 0, MEM_RELEASE);
+		//	bFailed = true;
+		//	break;
+		//}
 
-		dwSize -= sizeof(nLength);
-		it.ReplyAction = reinterpret_cast<LPTSTR> (VirtualAlloc(NULL, nLength, MEM_COMMIT|MEM_RESERVE,PAGE_READWRITE));
-		if (it.ReplyAction == NULL)
-		{
-			VirtualFree (it.RuleName, 0, MEM_RELEASE);
-			VirtualFree (it.ContactName, 0, MEM_RELEASE);
-			VirtualFree (it.ReplyText, 0, MEM_RELEASE);
-			bFailed = true;
-			break;
-		}
+		//dwSize -= sizeof(nLength);
+		//it.ReplyAction = reinterpret_cast<LPTSTR> (VirtualAlloc(NULL, nLength, MEM_COMMIT|MEM_RESERVE,PAGE_READWRITE));
+		//if (it.ReplyAction == NULL)
+		//{
+		//	VirtualFree (it.RuleName, 0, MEM_RELEASE);
+		//	VirtualFree (it.ContactName, 0, MEM_RELEASE);
+		//	VirtualFree (it.ReplyText, 0, MEM_RELEASE);
+		//	bFailed = true;
+		//	break;
+		//}
 
-		bReaded = ReadFile (m_hFile, it.ReplyAction, nLength, &dwReaded, NULL);
-		if (bReaded == FALSE || dwReaded != nLength)
-		{
-			VirtualFree (it.RuleName, 0, MEM_RELEASE);
-			VirtualFree (it.ContactName, 0, MEM_RELEASE);
-			VirtualFree (it.ReplyText, 0, MEM_RELEASE);
-			VirtualFree (it.ReplyAction, 0, MEM_RELEASE);
-			bFailed = true;
-			break;
-		}
+		//bReaded = ReadFile (m_hFile, it.ReplyAction, nLength, &dwReaded, NULL);
+		//if (bReaded == FALSE || dwReaded != nLength)
+		//{
+		//	VirtualFree (it.RuleName, 0, MEM_RELEASE);
+		//	VirtualFree (it.ContactName, 0, MEM_RELEASE);
+		//	VirtualFree (it.ReplyText, 0, MEM_RELEASE);
+		//	//VirtualFree (it.ReplyAction, 0, MEM_RELEASE);
+		//	bFailed = true;
+		//	break;
+		//}
 
-		dwSize -= nLength;
+		//dwSize -= nLength;
 		dwCrc32 = NULL;
 		CCrc32Static::StringCrc32(it.ContactName, dwCrc32);
 		m_hashTable.insert(RulesHash::value_type(dwCrc32, it) );	/// filling list
@@ -441,18 +436,12 @@ END_PROTECT_AND_LOG_CODE
 void CRulesStorage::SetCommonMessages(void)
 {
 BEGIN_PROTECT_AND_LOG_CODE
-	RawWriteDataBufByChunk(m_comItem.Header);
 	RawWriteDataBufByChunk(m_comItem.Message);
 END_PROTECT_AND_LOG_CODE
 }
 
 void CRulesStorage::ClearCommonMessages(void)
-{
-	if (m_comItem.Header)
-	{
-		VirtualFree (m_comItem.Header, NULL, MEM_RELEASE);
-		m_comItem.Header = NULL;
-	}
+{	
 	if (m_comItem.Message)
 	{
 		VirtualFree (m_comItem.Message, NULL, MEM_RELEASE);
@@ -467,14 +456,9 @@ UINT CRulesStorage::GetCommonMessages(void)
 BEGIN_PROTECT_AND_LOG_CODE
 	ClearCommonMessages();
 	UINT nRetVal = 0;	
-	nRetVal = RawReadDataBufByChunk(m_comItem.Header);
+	
+	nRetVal += RawReadDataBufByChunk(m_comItem.Message);
 
-	if (nRetVal && m_comItem.Header)
-	{
-		nRetVal += RawReadDataBufByChunk(m_comItem.Message);
-	}
-	else
-		return nRetVal;
 	return nRetVal;
 END_PROTECT_AND_LOG_CODE
 #undef RAW_DATACLEAR	
@@ -514,7 +498,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 	if (it != m_hashTable.end())
 	{
 		VirtualFree (it->second.ContactName, 0, MEM_RELEASE);
-		VirtualFree (it->second.ReplyAction, 0, MEM_RELEASE);
+//		VirtualFree (it->second.ReplyAction, 0, MEM_RELEASE);
 		VirtualFree (it->second.ReplyText, 0, MEM_RELEASE);
 		VirtualFree (it->second.RuleName, 0, MEM_RELEASE);
 

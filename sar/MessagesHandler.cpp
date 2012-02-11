@@ -1,7 +1,7 @@
 /*
  *  Smart Auto Replier (SAR) - auto replier plugin for Miranda IM
  *
- *  Copyright (C) 2005 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
+ *  Copyright (C) 2004 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
  *
  *      This file is part of SAR.
  *
@@ -21,6 +21,7 @@
 
 #include "stdafx.h"
 #include "messageshandler.h"
+#include "SarLuaScript.h"
 #include <time.h>
 
 extern CCrushLog CRUSHLOGOBJ;
@@ -242,26 +243,34 @@ END_PROTECT_AND_LOG_CODE
 int CMessagesHandler::EventAddHook(WPARAM wp, LPARAM lp)
 {
 BEGIN_PROTECT_AND_LOG_CODE
-	DWORD dwOffset  = static_cast<DWORD> (lp);
-	HANDLE hContact = reinterpret_cast<HANDLE> (wp);
+	DWORD	dwOffset  = static_cast<DWORD> (lp);
+	HANDLE	hContact = reinterpret_cast<HANDLE>(wp);
 	DBEVENTINFO dbei;	
 
 	if (!hContact || !dwOffset)
+	{
 		return FALSE;	/// unspecifyed error 
+	}
 	
 	ZeroMemory(&dbei, sizeof(dbei));
 	dbei.cbSize = sizeof(dbei);
 	dbei.cbBlob = 0;
-	
+
 	CallService(MS_DB_EVENT_GET, lp, (LPARAM)&dbei); /// detect size of msg
 
 	if ((dbei.eventType != EVENTTYPE_MESSAGE) || (dbei.flags == DBEF_READ) || (dbei.flags == DBEF_SENT) ) 
+	{
 		return FALSE; /// we need EVENTTYPE_MESSAGE event..
+	}
 	else
 	{	/// needed event has occured..
 		if (!dbei.cbBlob)	/// invalid size
+		{
 			return FALSE;
-		dbei.pBlob = reinterpret_cast<LPBYTE>(VirtualAlloc(NULL, dbei.cbBlob, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE));
+		}
+
+		dbei.pBlob = reinterpret_cast<LPBYTE>(VirtualAlloc(NULL, dbei.cbBlob, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
+
 		if (dbei.pBlob)
 		{
 			CallService(MS_DB_EVENT_GET, lp, reinterpret_cast<LPARAM>(&dbei));
@@ -288,13 +297,25 @@ BEGIN_PROTECT_AND_LOG_CODE
 				/// then - just sent it to user
 				CSettingsHandler & settingsManager = ptrHolder->getSettings();
 				settingsManager.getStorage().IsRuleMatch(inf, lpMessage, reinterpret_cast<LPTSTR&>(dbei.pBlob));
-				int nRetVal = SendProtoMess(hContact, lpMessage);
-				if (settingsManager.getSettings().bSaveToHistory)
+
 				{
-					ptrHolder->WriteToHistory(lpMessage, hContact);
+					/// do the lua trick
+					CLuaBridge luaBridge;
+					CSarLuaScript script(luaBridge);
+
+					script.CompileScript(lpMessage, _tcslen(lpMessage));
+	
+					script.SelectScriptFunction ("SAR");
+					script.AddParam((int)hContact);
+					script.AddParam((char *)dbei.pBlob);
+					script.AddParam(szContactName);
+					script.AddParam(dbei.szModule);	
+					script.Run();
 				}
-				VirtualFree (lpMessage, NULL, MEM_RELEASE);
-				VirtualFree (dbei.pBlob, NULL, MEM_RELEASE);
+
+				VirtualFree(lpMessage, NULL, MEM_RELEASE);
+				VirtualFree(dbei.pBlob, NULL, MEM_RELEASE);
+
 				return FALSE;
 			}
 		}

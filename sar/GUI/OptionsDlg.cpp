@@ -1,7 +1,7 @@
 /*
  *  Smart Auto Replier (SAR) - auto replier plugin for Miranda IM
  *
- *  Copyright (C) 2005 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
+ *  Copyright (C) 2004 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
  *
  *      This file is part of SAR.
  *
@@ -80,7 +80,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 
 	m_listRules = GetDlgItem(IDC_LIST_RULES);
 	m_editReplayDelay = GetDlgItem(IDC_EDIT_REPLAYDELAY);
-	m_editHeaderMessage = GetDlgItem(IDC_EDIT_HEADER);
+//	m_editHeaderMessage = GetDlgItem(IDC_EDIT_HEADER);
 	m_editMessageText = GetDlgItem(IDC_EDIT_MESSAGE);
 	m_btnAdd = GetDlgItem(IDC_BTN_ADDRULE);
 	m_btnDel = GetDlgItem(IDC_BTN_DELRULE);
@@ -167,23 +167,9 @@ BEGIN_PROTECT_AND_LOG_CODE
 	TCHAR strNumber[MAX_PATH] = {0};
 	m_editReplayDelay.SetWindowText(_itot(nLength, strNumber, 10));
 	m_nReplayDelay = nLength;
-			
-	LPCSTR str = commRules.Header;
-	m_editHeaderMessage.SetWindowText(str);
-	str = commRules.Message;
-	m_editMessageText.SetWindowText(str);
 
-	if (m_szHeader)
-	{
-		VirtualFree (m_szHeader, NULL, MEM_RELEASE);
-		m_szHeader = NULL;
-	}
-
-	m_szHeader = reinterpret_cast<char*>(VirtualAlloc (NULL, SETTINGS_HEADER_MAXVALENGTH, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE));
-	if (!m_szHeader)
-		return FALSE;
-
-	m_editHeaderMessage.GetWindowText(m_szHeader, SETTINGS_HEADER_MAXVALENGTH);
+	LPCSTR str = commRules.Message;
+	m_editMessageText.SetWindowText(str);	
 		
 	if (m_szMessage)
 	{
@@ -231,7 +217,6 @@ BEGIN_PROTECT_AND_LOG_CODE
 	///::DestroyWindow(m_hWnd);
 	///g_optionsDlg.m_hWnd = NULL;
 	//m_hWnd = NULL;
-	m_szHeader = NULL;
 	m_szMessage = NULL;	
 	// m_bDestroying = false;
 	///g_optionsDlg.m_bDestroying = false;
@@ -278,8 +263,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 		{	/// apply our changes...
 			REPLYER_SETTINGS sett;
 			COMMON_RULE_ITEM commrule;
-
-			commrule.Header = m_szHeader;
+			
 			commrule.Message = m_szMessage;
 
 			sett.bEnabled = g_pMessHandler->getSettings().getSettings().bEnabled;
@@ -311,28 +295,7 @@ END_PROTECT_AND_LOG_CODE
 LRESULT COptionsDlg::OnEditHeader(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 BEGIN_PROTECT_AND_LOG_CODE
-	if (!m_szHeader)
-		return FALSE;
-
-	int nLength = m_editHeaderMessage.GetWindowTextLength();
-
-	if (nLength > SETTINGS_HEADER_MAXVALENGTH)
-	{
-		MessageBox (Translate("too big size"), g_strPluginName, MB_OK);
-		m_editHeaderMessage.SetWindowText(m_szHeader);
-		return FALSE;
-	}
-	nLength++;
-	LPTSTR str1 = reinterpret_cast<char*>(VirtualAlloc (NULL, nLength, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE));
-	if (!str1)
-		return FALSE;
-	m_editHeaderMessage.GetWindowText(str1, nLength);
-	if (_tcscmp(m_szHeader, str1) != 0)
-	{
-		_tcscpy(m_szHeader, str1);
-		OnNotifyAboutChanges();
-	}
-	VirtualFree (str1, NULL, MEM_RELEASE);	
+	
 END_PROTECT_AND_LOG_CODE
 	return FALSE;
 }
