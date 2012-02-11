@@ -1,0 +1,121 @@
+<html>
+	<head>
+		<TITLE>Manual on Smart Auto Replier (SAR) plugin for MirandaIM v.(2.0.0.0) usage</TITLE>
+		<meta name="vs_targetSchema" content="http://schemas.microsoft.com/intellisense/ie5">
+	</head>
+	<body size="10" text="black" vLink="black" link="red" bgColor="C4C4C4">
+		<P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Smart Auto Replier (SAR) plugin for 
+			MirandaIM v.(2.0.0.0) description.</P>
+		<P>
+		Aim: The main task of the plugin is to provide possibilty of autoreplying, i.e. 
+		when you recieve message plugin replies using message, specifyed by you. This 
+		plugin is useful when you're not near PC but for you is important to inform 
+		several users about something ;)
+		<P>
+			1. Enabling plugin<br>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; To enable plugin click on 
+		upper menu&nbsp;in Miranda and choose "Enable Smart Auto Replier" menu item.
+		<P>2. Changing options.<br>
+			First of all&nbsp;I would like to explain the meaning of all options :</P>
+		<P>***&nbsp;&nbsp; "Reply delay"&nbsp;is the delay (in seconds) after which the 
+			autoreply will be generated to user&nbsp;if he(user) sends message again. Lets 
+			suppose that user sends message to plugin at 00:00 00 and Reply delay is 5 
+			seconds. Plugin generate autoreply to user. User&nbsp;sends message again at 
+			00.00 02, plugin woud not reply -&nbsp;reply will be generated&nbsp;only after 
+			5&nbsp;seconds - when user will send message again..i.e. -&nbsp;00.00 07 and 
+			later.</P>
+		<P>***&nbsp;&nbsp;&nbsp;"Disabling when miranda is on" -&nbsp;Disables plugin when 
+			Miranda is on if it was enabled.</P>
+		<P>***&nbsp;&nbsp; "Header text" -&nbsp; not used for the momemnt, feel free to put there some garbage</P>
+		<P>***&nbsp;&nbsp;&nbsp; "Message text"&nbsp;-&nbsp;Lua script which is executed when a message is arrived.</P>
+		<P>
+			***&nbsp;&nbsp;&nbsp;&nbsp;"Enable when status becomes" -&nbsp;plugin will 
+			enable itself when specifyed&nbsp;status is set.</P>
+		<P>
+			***&nbsp;&nbsp;&nbsp;&nbsp;"Disable when status becomes" -&nbsp;plugin will 
+			disable itself when specifyed&nbsp;status is set.</P>
+		<P>
+			***&nbsp;&nbsp;&nbsp;&nbsp;"Save autoreplies to History" -&nbsp;plugin will 
+			save it's autoreplies into history.</P>
+		<P>***&nbsp;&nbsp;&nbsp;&nbsp;"Ask to set autoreply message when mode changes" - 
+			when mode changes to busy state a dialog box appears&nbsp;providing possibility 
+			to edit autoreply message.</P>
+		<P>
+			***&nbsp;&nbsp;&nbsp;&nbsp;"Add rule" - adds rule (note: you can also add rule 
+			by right clicking on user in c.l.)
+		</P>
+		<P>
+			***&nbsp;&nbsp;&nbsp;&nbsp;"Edit rule" - edits rule.</P>
+		<P>
+			***&nbsp;&nbsp;&nbsp;&nbsp;"Delete rule" - deletes rule.</P>
+		<P>
+			***&nbsp;&nbsp;&nbsp;&nbsp;"Rule" -&nbsp;a rule that is applied to specific 
+			contact.</P>
+		<P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;When you run&nbsp;plugin 
+			first time the default options used by plugin are :<br>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Reply delay : 2 seconds.<br>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Disabling when miranda is 
+			on : true.<br>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Header text : 
+			"%currdate%, hail %username% user has left auto reply message:".<br>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Message text : "why do 
+			you write this:\r\n'%incomingmessage%' ?\r\nI am not near pc, read my&nbsp; 
+			mode msg:\r\n'%modemessage%'\r\n(%ownnickname%)".</P>
+		<P>3. Settings.</P>
+		<P>&nbsp;&nbsp;&nbsp;&nbsp; Plugin uses two files to store it's settings:<br>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - sar.rs&nbsp; - 
+			rules and common aureplier message.<br>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - sar.cs - reply 
+		delay, disabling when miranda is on, dis/enable when status becomes, etc.
+		Settings files are stored in user profile folder, a typical path is: C:\Documents and Settings\volodymyr\Documents\Sar\
+		<P>
+		4. Lua.
+		<P>&nbsp;&nbsp;&nbsp; Plugin may execute Lua script thus basically allowing any kind of customizations you may need. 
+			When message comes, plugin is executing a Lua function called SAR. A default SAR function looks like this:<br>
+			<P>
+			function this.SAR(this, hUser, szMessage, szUser, szProtocol)<br>
+			    this:SendMessage(hUser, "Here is my autoreply!")<br>
+			end<br>
+			</P>
+			Lua is a powerful language, so you can write different conditions which will be executed when a message from user will come. For example:
+			<P>
+			function this.SAR(this, hUser, szMessage, szUser, szProtocol)
+			<br>
+			    index = string.find(szMessage, "hello")<br>
+	
+			    if index == nil<br>
+			        then this:SendMessage(hUser, "you did not wrote me hello")<br>
+    			   else
+        		  	this:SendMessage(hUser, "you wrote me hello")<br>
+			  end<br>
+	        <br>
+		    if szUser == "Sad"<br>
+		        then this:SendMessage(hUser, "you are user Sad") <br>
+	            else<br>
+		        this:SendMessage(hUser, "you are not user Sad you are: ") <br>
+		        this:SendMessage(hUser, szUser) <br>
+	    end<br>
+ <br>
+     index = string.find(szProtocol, "ICQ")<br>
+<br>
+    if index == nil<br>
+        then this:SendMessage(hUser, "you are not writing from ICQ protocol")<br>
+    else<br>
+        this:SendMessage(hUser, "you are writing via ICQ protocol")<br>
+    end<br>
+<br>
+end<br>
+			</P>
+		<P>
+			<br>
+			5. Change log (for 2.0.0.0)</P>
+		<P>
+			&nbsp;&nbsp; 1. Added Lua<br>
+
+</P>
+		<P>If you have any wishes or just want to report about bug, do this at plugin page: <a href="http://shcherbyna.com/forum/viewforum.php?f=8">Smart Auto Replier Forum</a></P>
+		<P>Developed by <a href="http://www.shcherbyna.com">Volodymyr M. Shcherbyna</a><br></P>
+	</body>
+</html>
