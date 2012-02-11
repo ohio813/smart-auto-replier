@@ -1,7 +1,7 @@
 /*
  *  Smart Auto Replier (SAR) - auto replier plugin for Miranda IM
  *
- *  Copyright (C) 2005 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
+ *  Copyright (C) 2004 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
  *
  *      This file is part of SAR.
  *
@@ -27,19 +27,21 @@
 #include "gui\EditReplyDlg.h" 
 #include "gui\addruledlg.h"
 
+#include "../updater/m_updater.h"
+
 /// let's advertise myselft and this plugin ;)
 #define ICQPROTONAME		"SAR"
 #define ICQPROTODECRSHORT   "Smart Auto Replier"
-#define ICQPROTODECR		"Smart Auto Replier is able to reply on all incoming messages, making possible use of rules that are applied to specific contacts."
+#define ICQPROTODECR		"Plugin is able to reply on all incoming messages, making possible use of rules that are applied to specific contacts. Plugin allows to use Lua scripts as a rules, thus allowing user to make virtually any type of customizations."
 #define DEVNAME				"Volodymyr M. Shcherbyna"
 #define DEVMAIL				"volodymyr@shcherbyna.com"
-#define DEVCOPYRIGHT		"© 2005-2012 Volodymyr M. Shcherbyna, www.shcherbyna.com"
+#define DEVCOPYRIGHT		"© 2004-2012 Volodymyr M. Shcherbyna, www.shcherbyna.com"
 #define DEVWWW				"http://shcherbyna.com/forum/viewforum.php?f=8"
-#define GLOB_HOOKS			2
+#define GLOB_HOOKS			3
 
 /// global menu items strings...
-#define MENU_ITEM_DISABLE_CAPTION	Translate("Disable Auto replier")
-#define MENU_ITEM_ENABLE_CAPTION	Translate("Enable Auto replier")
+#define MENU_ITEM_DISABLE_CAPTION	Translate("Disable Smart Auto Replier")
+#define MENU_ITEM_ENABLE_CAPTION	Translate("Enable Smart Auto Replier")
 
 //#define 
 /// global data...
@@ -57,12 +59,12 @@ LPTSTR g_strPluginName = ICQPROTONAME;		/// global string that represents plugin
 INT	   g_nCurrentMode = 0;					/// current mode of a protocol == i duno which exactly protocol...
 HANDLE g_hAUR2User = NULL;					/// handle to proto service of "autoreply to this user"
 
-/// forming an info structure 
+/// forming an info structure
 PLUGININFO pluginInfo =
 {
 	sizeof(PLUGININFO),
 	ICQPROTODECRSHORT,
-	PLUGIN_MAKE_VERSION(0, 0, 0, 1),
+	PLUGIN_MAKE_VERSION(2, 0, 0, 0),
 	ICQPROTODECR,
 	DEVNAME,
 	DEVMAIL,
@@ -140,8 +142,8 @@ static int AUR2User(WPARAM wParam, LPARAM lParam)
 	CAddRuleDlg dlg;
 	RULE_ITEM item;
 	item.ContactName = g_pMessHandler->GetContactName(reinterpret_cast<HANDLE>(wParam));
-	item.ReplyAction = " ";
-	item.ReplyText = " ... ";
+	//item.ReplyAction = " ";
+	item.ReplyText = SETTINGS_DEF_MESSAGE_RULE;
 	TCHAR rulename[MAX_PATH * 5] = {0};
 	_tcscat(rulename, "reply to ");
 	_tcscat(rulename, item.ContactName);
@@ -275,6 +277,39 @@ END_PROTECT_AND_LOG_CODE
 }
 #endif
 
+int OnModulesLoaded(WPARAM wParam, LPARAM lParam)
+{
+	Update update = {0}; // for c you'd use memset or ZeroMemory...
+	char szVersion[16];
+
+	update.cbSize = sizeof(Update);
+
+	update.szComponentName	= pluginInfo.shortName;
+	update.pbVersion		= (BYTE *)CreateVersionStringPlugin(&pluginInfo, szVersion);
+	update.cpbVersion		= strlen((char*)update.pbVersion);
+
+	// these are the three lines that matter - the archive, the page containing the version string, and the text (or data) 
+	// before the version that we use to locate it on the page
+	// (note that if the update URL and the version URL point to standard file listing entries, the backend xml
+	// data will be used to check for updates rather than the actual web page - this is not true for beta urls)
+	//update.szUpdateURL		= "http://www.shcherbyna.com/files/sar/SAR.zip";
+	//update.szVersionURL		= "http://www.shcherbyna.com/files/sar/SAR.html";
+
+	update.szUpdateURL = "http://addons.miranda-im.org/details.php?action=viewfile&id=1609";
+	
+	//update.pbVersionPrefix	= (BYTE *)"SAR version ";
+	
+	//update.cpbVersionPrefix = strlen((char *)update.pbVersionPrefix);
+
+	// do the same for the beta versions of the above struct members if you wish to allow beta updates from another URL
+
+	CallService(MS_UPDATE_REGISTER, 0, (WPARAM)&update);
+
+	// Alternatively, to register a plugin with e.g. file ID 2254 on the file listing...
+	// CallService(MS_UPDATE_REGISTERFL, (WPARAM)2254, (LPARAM)&pluginInfo);
+	return 0;
+}
+
 /// loading plugin
 extern "C" int __declspec(dllexport) Load(PLUGINLINK *link)
 {
@@ -285,6 +320,7 @@ extern "C" int __declspec(dllexport) Load(PLUGINLINK *link)
 	//MessageBox (NULL, __FUNCTION__, __FILE__, MB_OK);
 #endif
 	CCrushLog::Init(); /// crushes manager should be inited first
+	int nRetVal = 0;
 BEGIN_PROTECT_AND_LOG_CODE	
 	pluginLink = link;
 
@@ -315,6 +351,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 		//HookEvent(MS_AWAYMSG_SHOWAWAYMSG, OnShow
 		g_hHook[0] = HookEvent(ME_OPT_INITIALISE, OptionsInitialized);
 		g_hHook[1] = HookEvent(ME_CLIST_STATUSMODECHANGE, OnStatusModeChanged);
+		g_hHook[2] = HookEvent(ME_SYSTEM_MODULESLOADED, OnModulesLoaded);
 
 		/// Yushenko Tak, Yanukovich - Mudak. (Ukranian revolution)
 		/// 
@@ -341,12 +378,15 @@ BEGIN_PROTECT_AND_LOG_CODE
 		g_miAUR2This.flags = 0;
 		g_miAUR2This.hIcon = LoadIcon(hInst, MAKEINTRESOURCE(IDI_SAR_ICON));
 		g_miAUR2This.pszContactOwner = NULL;
-		g_miAUR2This.pszName = Translate("&Autoreply to this user");
+		g_miAUR2This.pszName = Translate("&Smart Auto Reply to this user ...");
 		CreateServiceFunction("AUR/AURToThis", AUR2User);
 		g_miAUR2This.pszService = "AUR/AURToThis";
 		g_hAUR2User = (HANDLE)CallService(MS_CLIST_ADDCONTACTMENUITEM, 0, (LPARAM)&g_miAUR2This);
 		HookEvent(ME_CLIST_PREBUILDCONTACTMENU, AURContactPreBuildMenu);
 	}
+
+	//nRetVal = RegisterWithUpdater(0, 0);
+
 END_PROTECT_AND_LOG_CODE
 	return FALSE;
 }

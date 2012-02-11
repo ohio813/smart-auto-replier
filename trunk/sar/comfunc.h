@@ -1,7 +1,7 @@
 /*
  *  Smart Auto Replier (SAR) - auto replier plugin for Miranda IM
  *
- *  Copyright (C) 2005 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
+ *  Copyright (C) 2004 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
  *
  *      This file is part of SAR.
  *

@@ -1,7 +1,7 @@
 /*
  *  Smart Auto Replier (SAR) - auto replier plugin for Miranda IM
  *
- *  Copyright (C) 2005 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
+ *  Copyright (C) 2004 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
  *
  *      This file is part of SAR.
  *
@@ -29,15 +29,15 @@ typedef struct _RULE_ITEM : ISettingsStream
 {
 	LPTSTR	RuleName,		/// item name
 			ContactName,	/// contact name
-			ReplyText,		/// reply text
-			ReplyAction;	/// reply action
+			ReplyText;		/// reply text
+			/*ReplyAction;	/// reply action*/
 }RULE_ITEM, *PRULE_ITEM;
 
 /// common item... - a rule that is 
 /// applied to all users.
 typedef struct _COMMON_RULE_ITEM : ISettingsStream
 {
-	LPTSTR Header;
+	//LPTSTR Header;
 	LPTSTR Message;
 }COMMON_RULE_ITEM, *P_COMMON_RULE_ITEM;
 

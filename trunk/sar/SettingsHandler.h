@@ -1,7 +1,7 @@
 /*
  *  Smart Auto Replier (SAR) - auto replier plugin for Miranda IM
  *
- *  Copyright (C) 2005 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
+ *  Copyright (C) 2004 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
  *
  *      This file is part of SAR.
  *
@@ -36,8 +36,13 @@
 
 #define SETTINGS_DEF_COMMON_DWMION			1
 #define SETTINGS_DEF_COMMVALUE				0
-#define SETTINGS_DEF_HEADER					"%currdate%, Hey! %username% user has left auto reply message:"
-#define SETTINGS_DEF_MESSAGE				"Why do you write this:\r\n'%incomingmessage%' ?\r\nI am not near pc, read my mode msg:\r\n'%modemessage%'\r\n(%ownnickname%)"
+//#define SETTINGS_DEF_HEADER					"%currdate%, Hey! %username% user has left auto reply message:"
+//#define SETTINGS_DEF_MESSAGE				"Why do you write this:\r\n'%incomingmessage%' ?\r\nI am not near pc, read my mode msg:\r\n'%modemessage%'\r\n(%ownnickname%)"
+
+#define SETTINGS_DEF_MESSAGE				"function this.SAR(this, hUser, szMessage, szUser, szProtocol)\r\n    this:SendMessage(hUser, \"Here is my autoreply!\")\r\nend"
+#define SETTINGS_DEF_MESSAGE_RULE			"-- Main handler function written in Lua:\r\n\r\nfunction this.SAR(this, hUser, szMessage, szUser, szProtocol)\r\n    this:SendMessage(hUser, \"Here is my specific to user autoreply!\")\r\nend"
+#define SETTINGS_DEF_RULE_NAME				"Some generic rule name"
+
 #define SETTINGS_DEF_COMMON_VALREPDELAY		2
 #define SETTINGS_DEF_COMMON_EN_ONMODEON		0
 #define SETTINGS_DEF_COMMON_EN_DISONMODEON	0

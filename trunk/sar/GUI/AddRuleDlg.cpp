@@ -1,7 +1,7 @@
 /*
  *  Smart Auto Replier (SAR) - auto replier plugin for Miranda IM
  *
- *  Copyright (C) 2005 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
+ *  Copyright (C) 2004 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
  *
  *      This file is part of SAR.
  *
@@ -49,7 +49,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 	m_editRuleName = GetDlgItem(IDC_ED_RULENAME);
 	m_editContactName = GetDlgItem(IDC_ED_RULECNAME);
 	m_editReplyText = GetDlgItem(IDC_ED_RULEREPLY);
-	m_editReplyAction = GetDlgItem(IDC_ED_RULEACTION);
+	//m_editReplyAction = GetDlgItem(IDC_ED_RULEACTION);
 	m_btnSelUser = GetDlgItem(IDC_BTN_SELUSER);
 
 	CenterWindow();
@@ -60,7 +60,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 		m_editRuleName.SetWindowText(m_item.RuleName);
 		m_editContactName.SetWindowText(m_item.ContactName);
 		m_editReplyText.SetWindowText(m_item.ReplyText);
-		m_editReplyAction.SetWindowText(m_item.ReplyAction);
+		//m_editReplyAction.SetWindowText(m_item.ReplyAction);
 		m_bEditing = true;
 	}
 	else if (m_baur2thisMode)
@@ -68,12 +68,17 @@ BEGIN_PROTECT_AND_LOG_CODE
 		m_editRuleName.SetWindowText(m_item.RuleName);
 		m_editContactName.SetWindowText(m_item.ContactName);
 		m_editReplyText.SetWindowText(m_item.ReplyText);
-		m_editReplyAction.SetWindowText(m_item.ReplyAction);
+		//m_editReplyAction.SetWindowText(m_item.ReplyAction);
 
 		m_btnSelUser.EnableWindow(FALSE);
 		m_editContactName.EnableWindow(FALSE);
 		m_editReplyText.SetSel(0, _tcslen(m_item.ReplyText), FALSE);
 		m_editReplyText.SetFocus();
+	}
+	else
+	{
+		m_editRuleName.SetWindowText(SETTINGS_DEF_RULE_NAME);
+		m_editReplyText.SetWindowText(SETTINGS_DEF_MESSAGE_RULE);
 	}
 
 END_PROTECT_AND_LOG_CODE
@@ -147,7 +152,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 		ON_ERROR("Please, specify Reply Text")
 	}
 
-	nLength = m_editReplyAction.GetWindowTextLength();
+	/*nLength = m_editReplyAction.GetWindowTextLength();
 	if (nLength == 0) /// zero ? lets make fake..
 		nLength++;
 	if (nLength)
@@ -158,7 +163,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 
 		if (_tcslen(m_item.ReplyAction) == 0 && nLength > 1)
 			_tcscpy(m_item.ReplyAction, " ");
-	}
+	}*/
 	
 	{
 		if (m_bEditing)

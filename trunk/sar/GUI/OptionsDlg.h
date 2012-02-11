@@ -1,7 +1,7 @@
 /*
  *  Smart Auto Replier (SAR) - auto replier plugin for Miranda IM
  *
- *  Copyright (C) 2005 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
+ *  Copyright (C) 2004 - 2012 by Volodymyr M. Shcherbyna <volodymyr@shcherbyna.com>
  *
  *      This file is part of SAR.
  *
@@ -92,7 +92,6 @@ private:
 	void OnSetSelInRulesList(int nIndex);
 protected:
 	CEdit m_editReplayDelay;		/// edit box where reply delay is specifyed
-	CEdit m_editHeaderMessage;		/// edit box where header text is specifyed
 	CEdit m_editMessageText;		/// edit box where message text is specifyed
 	CListBox m_listRules;			/// list box where all rules are specifyed
 	CButton m_btnAdd;				/// button add rule
@@ -105,8 +104,7 @@ protected:
 	CWindow m_chDisWMB;				/// ch disable when mode becomes...
 	CWindow m_chSaveAURSToHist;		/// save aurs to history
 	CComboBox m_cbDisWMBTypes;		/// cb disable when mode becomes...
-private:
-	LPTSTR	m_szHeader;
+private:	
 	LPTSTR	m_szMessage;
 	int		m_nReplayDelay;
 	bool	m_bDestroying;

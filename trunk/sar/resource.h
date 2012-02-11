@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by AUR.rc
+// Used by SAR.rc
 //
 #define IDD_OPTIONS                     101
 #define IDD_ADDRULE_DLG                 102
