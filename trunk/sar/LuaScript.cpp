@@ -40,7 +40,7 @@ LUA_CODE_CHUNK_ENTER(luaBridge)
 
 	CLuaStack luaStack(luaBridge);
 	lua_rawgeti(state, LUA_REGISTRYINDEX, m_nThisRef);
-	lua_pushlightuserdata (state, (void*)this);
+	lua_pushlightuserdata(state, reinterpret_cast<void*>(this));
 	lua_rawseti(state, -2, 0);
 
 LUA_CODE_CHUNK_LEAVE
@@ -72,15 +72,14 @@ int CLuaScript::LuaCallback(lua_State *lua)
 
 		if (lua_islightuserdata(lua, -1))
 		{
-			CLuaScript *pThis = reinterpret_cast<CLuaScript*>(lua_touserdata(lua, -1));
-			int nMethod = static_cast<int>(lua_tonumber(lua, iNumberIdx));
+			CLuaScript *pThis	= reinterpret_cast<CLuaScript*>(lua_touserdata(lua, -1));
+			int			nMethod = static_cast<int>(lua_tonumber(lua, iNumberIdx));
 
 			assert(!(nMethod > pThis->MethodsCount()));
 
-			lua_remove(lua, 1);
-			lua_remove(lua, -1);
+			lua_remove(lua, 1); lua_remove(lua, -1);
 
-			nRetsOnStack = pThis->ScriptCalling (pThis->Bridge(), nMethod);
+			nRetsOnStack = pThis->ScriptCalling(pThis->Bridge(), nMethod);
 
 			bRetVal = true;
 		}
@@ -113,7 +112,7 @@ LUA_CODE_CHUNK_ENTER(m_luaBridge)
 	
 	lua_rawgeti(state, LUA_REGISTRYINDEX, m_nThisRef);
 	lua_pushstring(state, szFuncName);
-	lua_pushnumber(state, (lua_Number) nMethod);
+	lua_pushnumber(state, (lua_Number)nMethod);
 	lua_pushcclosure(state, CLuaScript::LuaCallback, 1);
 	lua_settable(state, -3);
 
@@ -129,7 +128,7 @@ bool CLuaScript::SelectScriptFunction(const char *szFunction)
 LUA_CODE_CHUNK_ENTER(m_luaBridge)
 
 	lua_rawgeti(state, LUA_REGISTRYINDEX, m_nThisRef);
-	lua_pushstring (state, szFunction);
+	lua_pushstring(state, szFunction);
 	lua_rawget(state, -2);
 	lua_remove(state, -2);
 
@@ -164,7 +163,7 @@ LUA_CODE_CHUNK_ENTER(m_luaBridge)
 	lua_rawget(state, -2);
 	lua_remove(state, -2);
 
-	bRetVal = lua_isfunction(state, -1) != FALSE;
+	bRetVal = (lua_isfunction(state, -1) != FALSE);
 
 LUA_CODE_CHUNK_LEAVE
 
@@ -174,7 +173,7 @@ LUA_CODE_CHUNK_LEAVE
 void CLuaScript::AddParam(char * szValue)
 {
 LUA_CODE_CHUNK_ENTER(m_luaBridge)
-	lua_pushstring (state, szValue); ++m_nArgs;
+	lua_pushstring(state, szValue); ++m_nArgs;
 LUA_CODE_CHUNK_LEAVE
 }
 
@@ -199,7 +198,7 @@ bool CLuaScript::Run(int nRetValues)
 	if (bRetVal == true && nRetValues > 0)
 	{
 		HandleReturns(m_luaBridge, m_szFunction);
-		lua_pop((lua_State *)m_luaBridge, nRetValues);
+		lua_pop(static_cast<lua_State*>(m_luaBridge), nRetValues);
 	}
 
 	return bRetVal;
