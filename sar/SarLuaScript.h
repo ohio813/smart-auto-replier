@@ -33,11 +33,14 @@ public:
 	~CSarLuaScript(void);
 
 private:
-
-	int ScriptCalling(CLuaBridge & luaBridge, int nFncNumber);
 	int SendMessage(CLuaBridge & luaBridge);
+	int GetMyStatus(CLuaBridge & luaBridge);
+	int SetMyStatus(CLuaBridge & luaBridge);
 
-	void HandleReturns (CLuaBridge & luaBridge, const char *strFunc){}
+protected:
+	int ScriptCalling(CLuaBridge & luaBridge, int nFncNumber);	
+
+	void HandleReturns(CLuaBridge & luaBridge, const char *szFunc);
 
 protected:
    int m_nFuncBaseIndex;

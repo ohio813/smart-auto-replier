@@ -29,7 +29,6 @@
 #define IDC_CHECK1                      1017
 #define IDC_CH_SHOW_AURDLG_WHMC         1017
 #define IDC_CH_DISWHSB                  1017
-#define IDC_ED_HEADER                   1018
 #define IDC_ED_TEXT                     1019
 #define IDC_CB_DWSB                     1020
 #define IDC_LIST_USERS                  1021
