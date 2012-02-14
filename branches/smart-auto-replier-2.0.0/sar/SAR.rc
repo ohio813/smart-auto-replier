@@ -50,35 +50,32 @@ BEGIN
     CONTROL         "Save autoreplies to history",IDC_CH_SAVE_AURS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,193,266,10
 END
 
-IDD_ADDRULE_DLG DIALOGEX 0, 0, 384, 254
+IDD_ADDRULE_DLG DIALOGEX 0, 0, 384, 250
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Adding rule"
+CAPTION "Add contact specific Smart Auto Replier action script"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     EDITTEXT        IDC_ED_RULENAME,68,14,184,12,ES_MULTILINE | ES_WANTRETURN | WS_VSCROLL
     EDITTEXT        IDC_ED_RULECNAME,68,29,168,13,ES_MULTILINE | ES_WANTRETURN | WS_VSCROLL
-    EDITTEXT        IDC_ED_RULEREPLY,68,46,301,178,ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN | WS_VSCROLL
-    DEFPUSHBUTTON   "OK",IDOK,325,233,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,273,233,50,14
+    EDITTEXT        IDC_ED_RULEREPLY,21,54,342,166,ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN | WS_VSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,325,231,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,273,231,50,14
     PUSHBUTTON      "...",IDC_BTN_SELUSER,238,28,13,14
     GROUPBOX        "Rule settings",IDC_STATIC,7,3,368,225
-    LTEXT           "Rule name:",IDC_STATIC,12,15,41,10
-    LTEXT           "Contact name",IDC_STATIC,12,31,46,10
-    LTEXT           "Action script:",IDC_STATIC,12,45,43,8
+    LTEXT           "Rule name:",IDC_STATIC,15,16,41,10
+    LTEXT           "Contact name",IDC_STATIC,15,31,46,10
+    GROUPBOX        "Action script",IDC_STATIC,14,42,355,182
 END
 
-IDD_SET_AURMESSAGEDLG DIALOGEX 0, 0, 236, 114
+IDD_SET_AURMESSAGEDLG DIALOGEX 0, 0, 291, 157
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Set autoreply message"
+CAPTION "Set Smart Auto Replier action script"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    EDITTEXT        IDC_ED_HEADER,53,18,173,14,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL
-    EDITTEXT        IDC_ED_TEXT,53,37,173,53,ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN | WS_VSCROLL
-    DEFPUSHBUTTON   "OK",IDOK,181,97,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,126,97,50,14
-    GROUPBOX        "Auto replier settings",IDC_STATIC,4,8,227,86
-    LTEXT           "Header:",IDC_STATIC,8,20,27,8
-    LTEXT           "Reply text:",IDC_STATIC,8,39,37,8
+    EDITTEXT        IDC_ED_TEXT,6,10,278,123,ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN | WS_VSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,239,139,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,186,139,50,14
+    GROUPBOX        "Smart Auto Replier action script",IDC_STATIC,2,0,287,137
 END
 
 IDD_SEL_USER DIALOGEX 0, 0, 92, 194
@@ -129,15 +126,15 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 377
         TOPMARGIN, 7
-        BOTTOMMARGIN, 251
+        BOTTOMMARGIN, 247
     END
 
     IDD_SET_AURMESSAGEDLG, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 229
+        RIGHTMARGIN, 284
         TOPMARGIN, 7
-        BOTTOMMARGIN, 107
+        BOTTOMMARGIN, 150
     END
 
     IDD_SEL_USER, DIALOG
@@ -235,8 +232,8 @@ LANGUAGE LANG_FRENCH, SUBLANG_FRENCH_SWISS
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,0,0,0
- PRODUCTVERSION 2,0,0,0
+ FILEVERSION 2,0,0,1
+ PRODUCTVERSION 2,0,0,1
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -253,12 +250,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Volodymyr Shcherbyna, www.shcherbyna.com"
             VALUE "FileDescription", "Smart Auto Replier plugin for Miranda IM, http://shcherbyna.com/forum/viewforum.php?f=8"
-            VALUE "FileVersion", "2.0.0.0"
+            VALUE "FileVersion", "2.0.0.1"
             VALUE "InternalName", "sar.dll"
             VALUE "LegalCopyright", "Copyright (C) 2004 - 2012 by Volodymyr Shcherbyna"
             VALUE "OriginalFilename", "sar.dll"
             VALUE "ProductName", "sar.dll"
-            VALUE "ProductVersion", "2.0.0.0"
+            VALUE "ProductVersion", "2.0.0.1"
         END
     END
     BLOCK "VarFileInfo"

@@ -59,6 +59,7 @@ int CLuaBridge::LuaDebugMessage(lua_State *pContext)
 	const char *szMessage  = NULL;
 	lua_Debug	LuaDebug   = {0};
 
+	int n = lua_tonumber(pContext, 1);
 	szMessage = lua_tostring(pContext, 1);
 
 	if (szMessage == NULL)
