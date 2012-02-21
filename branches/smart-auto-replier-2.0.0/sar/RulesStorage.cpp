@@ -68,20 +68,26 @@ void CRulesStorage::DeInit(void)
 BEGIN_PROTECT_AND_LOG_CODE
 	if (m_hFile && m_hFile != INVALID_HANDLE_VALUE)
 		CloseHandle(m_hFile);
+
 	m_hFile = NULL;
 
 	/// now release memory...
 	for (RulesHash::iterator it = m_hashTable.begin(); it != m_hashTable.end(); it++)
 	{
 		RULE_ITEM & i = it->second;
-		VirtualFree (i.ContactName, NULL, MEM_RELEASE);
-		//VirtualFree (i.ReplyAction, NULL, MEM_RELEASE);
-		VirtualFree (i.ReplyText, NULL, MEM_RELEASE);
-		VirtualFree (i.RuleName, NULL, MEM_RELEASE);
+
+		delete i.ContactName;
+		delete i.ReplyText;
+		delete i.RuleName;
 	}
 	
-	VirtualFree (m_comItem.Message, NULL, MEM_RELEASE);
-	m_comItem.Message = NULL;
+	m_hashTable.clear();
+
+	if (m_comItem.Message != NULL)
+	{
+		delete m_comItem.Message;
+		m_comItem.Message = NULL;
+	}
 	
 END_PROTECT_AND_LOG_CODE
 }
@@ -90,7 +96,7 @@ END_PROTECT_AND_LOG_CODE
 void CRulesStorage::RawWriteDataBufByChunk(LPTSTR str)
 {
 BEGIN_PROTECT_AND_LOG_CODE
-	int nLength		= _tcslen(str);
+	int nLength		= _tcslen(str) * sizeof(TCHAR);
 	DWORD dwWritten = 0;
 	BOOL bVal		= FALSE;
 	
@@ -146,17 +152,20 @@ BEGIN_PROTECT_AND_LOG_CODE
 		/// cause GetReturnedMessage will release ptr
 		/// that is stored rule
 		/// found this bug after 20 min. of debugging ;(
-		strMess = reinterpret_cast<LPTSTR>(VirtualAlloc (NULL, _tcslen(iter->second.ReplyText), 
-										   MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE));
+		strMess = new TCHAR[_tcslen(iter->second.ReplyText) + (1 * sizeof(TCHAR))];
+		
 		if (strMess == NULL) /// ooops...
 		{
-			screader.GetReturnMessage(info.ContactName, strMess, lpIncomingMsg);
+			//screader.GetReturnMessage(info.ContactName, strMess, lpIncomingMsg);
 			LeaveCriticalSection(&m_critSect);
+
 			return false;
 		}
+
+		memset(strMess, 0, _tcslen(iter->second.ReplyText) * sizeof(TCHAR) + (1 * sizeof(TCHAR)));
 		_tcscpy(strMess, iter->second.ReplyText);
 		bExists = true;
-		screader.GetReturnMessage(iter->second.ContactName, strMess, lpIncomingMsg);
+		//screader.GetReturnMessage(iter->second.ContactName, strMess, lpIncomingMsg);
 	}
 	else
 		screader.GetReturnMessage(info.ContactName, strMess, lpIncomingMsg);
@@ -218,9 +227,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 		bFileExists = false;
 	}
 
-	m_hFile = CreateFile (m_szSettFileName,
-							GENERIC_READ|GENERIC_WRITE,  FILE_SHARE_READ|FILE_SHARE_WRITE,
-							NULL, (bFileExists ? OPEN_ALWAYS : CREATE_ALWAYS), FILE_ATTRIBUTE_HIDDEN, NULL); 
+	m_hFile = CreateFile (m_szSettFileName, GENERIC_READ|GENERIC_WRITE,  FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, (bFileExists ? OPEN_ALWAYS : CREATE_ALWAYS), FILE_ATTRIBUTE_HIDDEN, NULL);
 
 	if (m_hFile == INVALID_HANDLE_VALUE)
 	{/// show notification msg to user..
@@ -230,14 +237,21 @@ BEGIN_PROTECT_AND_LOG_CODE
 	if (bFileExists == false)
 	{
 		ClearCommonMessages();
-		m_comItem.Message = SETTINGS_DEF_MESSAGE;
-		SetCommonMessages();
+		m_comItem.Message = new TCHAR[sizeof(SETTINGS_DEF_MESSAGE) / sizeof(TCHAR) + sizeof(TCHAR)];
+
+		if (m_comItem.Message != NULL)
+		{
+			memset(m_comItem.Message, 0, sizeof(SETTINGS_DEF_MESSAGE) / sizeof(TCHAR) + sizeof(TCHAR));
+			_tcscpy(m_comItem.Message, SETTINGS_DEF_MESSAGE);
+			SetCommonMessages();
+		}
 	}
 
 	DWORD dwSize = 0;
-	dwSize = GetFileSize(m_hFile, &dwSize);
+	dwSize		= GetFileSize(m_hFile, &dwSize);
+
 	DWORD	dwReaded = 0,
-			dwCrc32 = 0;
+			dwCrc32  = 0;
 
 	int nLength = 0;
 
@@ -251,14 +265,15 @@ BEGIN_PROTECT_AND_LOG_CODE
 	}
 	else
 	{
-		dwSize -= _tcslen(SETTINGS_DEF_MESSAGE);
+		dwSize -= _tcslen(SETTINGS_DEF_MESSAGE) * sizeof(TCHAR);
 		dwSize -= 1 * sizeof(int);
 	}
 
 	while (dwSize)
 	{
 		RULE_ITEM it;
-		bReaded = ReadFile (m_hFile, &nLength, sizeof(nLength), &dwReaded, NULL);
+
+		bReaded = ReadFile(m_hFile, &nLength, sizeof(nLength), &dwReaded, NULL);
 
 		if (bReaded == FALSE || dwReaded != sizeof(nLength))
 		{
@@ -267,120 +282,101 @@ BEGIN_PROTECT_AND_LOG_CODE
 		}
 
 		dwSize -= sizeof(nLength);
-		it.RuleName = reinterpret_cast<LPTSTR>(VirtualAlloc(NULL, nLength, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE));
+		it.RuleName = new TCHAR[nLength / sizeof(TCHAR) + (1 * sizeof(TCHAR))];
+
 		if (it.RuleName == NULL)
 		{
 			bFailed = true;
 			break;
 		}
 
-		bReaded = ReadFile (m_hFile, it.RuleName, nLength, &dwReaded, NULL);
-		if (bReaded == FALSE || dwReaded != nLength)
+		memset(it.RuleName, 0, (nLength * sizeof(TCHAR) + (1 * sizeof(TCHAR))));
+
+		bReaded = ReadFile(m_hFile, it.RuleName, nLength, &dwReaded, NULL);
+		if (bReaded == FALSE || dwReaded != (nLength))
 		{
-			VirtualFree (it.RuleName, 0, MEM_RELEASE);
+			delete it.RuleName;
 			bFailed = true;
 			break;
 		}
 
-		dwSize -= nLength;
-		bReaded = ReadFile (m_hFile, &nLength, sizeof(nLength), &dwReaded, NULL);
+		dwSize -= dwReaded;
+		bReaded = ReadFile(m_hFile, &nLength, sizeof(nLength), &dwReaded, NULL);
+
 		if (bReaded == FALSE || dwReaded != sizeof(nLength))
 		{
-			VirtualFree (it.RuleName, 0, MEM_RELEASE);
+			delete it.RuleName;
 			bFailed = true;
 			break;
 		}
+
 		dwSize -= sizeof(nLength);
-		it.ContactName = reinterpret_cast<LPTSTR>(VirtualAlloc(NULL, nLength, MEM_COMMIT|MEM_RESERVE,PAGE_READWRITE));
+		it.ContactName = new TCHAR[nLength / sizeof(TCHAR) + (1 * sizeof(TCHAR))];
+
 		if (it.ContactName == NULL)
 		{
-			VirtualFree (it.RuleName, 0, MEM_RELEASE);
+			delete it.RuleName;
 			bFailed = true;
 			break;
 		}
-		bReaded = ReadFile (m_hFile, it.ContactName, nLength, &dwReaded, NULL);
 
-		if (bReaded == FALSE || dwReaded != nLength)
+		memset(it.ContactName, 0, (nLength * sizeof(TCHAR) + (1 * sizeof(TCHAR))));
+		bReaded = ReadFile(m_hFile, it.ContactName, nLength, &dwReaded, NULL);
+
+		if (bReaded == FALSE || dwReaded != (nLength))
 		{
-			VirtualFree (it.RuleName, 0, MEM_RELEASE);
-			VirtualFree (it.ContactName, 0, MEM_RELEASE);
+			delete it.RuleName;
+			delete it.ContactName;
 			bFailed = true;
 			break;
 		}
 
-		dwSize -= nLength;
-
+		dwSize -= dwReaded;
 		bReaded = ReadFile (m_hFile, &nLength, sizeof(nLength), &dwReaded, NULL);
+
 		if (bReaded == FALSE || dwReaded != sizeof(nLength))
 		{
-			VirtualFree (it.RuleName, 0, MEM_RELEASE);
-			VirtualFree (it.ContactName, 0, MEM_RELEASE);
+			delete it.RuleName;
+			delete it.ContactName;
 			bFailed = true;
 			break;
 		}
 
 		dwSize -= sizeof(nLength);
-		it.ReplyText = reinterpret_cast<LPTSTR> (VirtualAlloc(NULL, nLength, MEM_COMMIT|MEM_RESERVE,PAGE_READWRITE));
+		it.ReplyText = new TCHAR[nLength / sizeof(TCHAR) + (1 * sizeof(TCHAR))];
+
 		if (it.ReplyText == NULL)
 		{
-			VirtualFree (it.RuleName, 0, MEM_RELEASE);
-			VirtualFree (it.ContactName, 0, MEM_RELEASE);
+			delete it.RuleName;
+			delete it.ContactName;
 			bFailed = true;
 			break;
 		}
+
+		memset(it.ReplyText, 0, (nLength * sizeof(TCHAR) + (1 * sizeof(TCHAR))));
 		bReaded = ReadFile (m_hFile, it.ReplyText, nLength, &dwReaded, NULL);
-		if (bReaded == FALSE || dwReaded != nLength)
+
+		if (bReaded == FALSE || dwReaded != (nLength))
 		{
-			VirtualFree (it.RuleName, 0, MEM_RELEASE);
-			VirtualFree (it.ContactName, 0, MEM_RELEASE);
-			VirtualFree (it.ReplyText, 0, MEM_RELEASE);
+			delete it.RuleName;
+			delete it.ContactName;
+			delete it.ReplyText;
+
 			bFailed = true;
 			break;
 		}
 
-		dwSize -= nLength;
+		dwSize -= dwReaded;
 
-		//bReaded = ReadFile (m_hFile, &nLength, sizeof(nLength), &dwReaded, NULL);
-		//if (bReaded == FALSE || dwReaded != sizeof(nLength))
-		//{	
-		//	VirtualFree (it.RuleName, 0, MEM_RELEASE);
-		//	VirtualFree (it.ContactName, 0, MEM_RELEASE);
-		//	VirtualFree (it.ReplyText, 0, MEM_RELEASE);
-		//	bFailed = true;
-		//	break;
-		//}
-
-		//dwSize -= sizeof(nLength);
-		//it.ReplyAction = reinterpret_cast<LPTSTR> (VirtualAlloc(NULL, nLength, MEM_COMMIT|MEM_RESERVE,PAGE_READWRITE));
-		//if (it.ReplyAction == NULL)
-		//{
-		//	VirtualFree (it.RuleName, 0, MEM_RELEASE);
-		//	VirtualFree (it.ContactName, 0, MEM_RELEASE);
-		//	VirtualFree (it.ReplyText, 0, MEM_RELEASE);
-		//	bFailed = true;
-		//	break;
-		//}
-
-		//bReaded = ReadFile (m_hFile, it.ReplyAction, nLength, &dwReaded, NULL);
-		//if (bReaded == FALSE || dwReaded != nLength)
-		//{
-		//	VirtualFree (it.RuleName, 0, MEM_RELEASE);
-		//	VirtualFree (it.ContactName, 0, MEM_RELEASE);
-		//	VirtualFree (it.ReplyText, 0, MEM_RELEASE);
-		//	//VirtualFree (it.ReplyAction, 0, MEM_RELEASE);
-		//	bFailed = true;
-		//	break;
-		//}
-
-		//dwSize -= nLength;
 		dwCrc32 = NULL;
 		CCrc32Static::StringCrc32(it.ContactName, dwCrc32);
 		m_hashTable.insert(RulesHash::value_type(dwCrc32, it) );	/// filling list
 	}
-	
+
 	if (bFailed)
 	{	/// upps...
 		bool bdelete = NotifyAboutWrongSettings(m_szSettFileName);
+
 		if (bdelete)
 		{
 			CloseHandle (m_hFile);
@@ -408,22 +404,28 @@ BEGIN_PROTECT_AND_LOG_CODE
 	int nSizeOf = 0;
 	DWORD dwReaded = 0;
 	const int nsizeof = sizeof(nSizeOf);
-	BOOL bReaded = ReadFile (m_hFile, &nSizeOf, nsizeof, &dwReaded, NULL);
+	BOOL bReaded = ReadFile(m_hFile, &nSizeOf, nsizeof, &dwReaded, NULL);
 	nRetVal += dwReaded;
+
 	if (bReaded == FALSE || dwReaded != nsizeof)
 	{
 		return nRetVal;
 	}
-	
-	szData = reinterpret_cast<LPTSTR>(VirtualAlloc (NULL, nSizeOf,  MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
-	if (szData == NULL)
-		return nRetVal + dwReaded;
+		
+	szData = new TCHAR[(nSizeOf / sizeof(TCHAR)) + (1 * sizeof(TCHAR))];
 
+	if (szData == NULL)
+	{
+		return nRetVal + dwReaded;
+	}
+
+	memset(szData, 0, nSizeOf + (1 * sizeof(TCHAR)));
 	bReaded = ReadFile(m_hFile, szData, nSizeOf, &dwReaded, NULL);
 	nRetVal += dwReaded;
+
 	if (bReaded == FALSE || dwReaded != nSizeOf)
 	{
-		VirtualFree (szData, NULL, MEM_RELEASE);
+		delete szData;
 		szData = NULL;
 		return nRetVal;
 	}
@@ -444,7 +446,7 @@ void CRulesStorage::ClearCommonMessages(void)
 {	
 	if (m_comItem.Message)
 	{
-		VirtualFree (m_comItem.Message, NULL, MEM_RELEASE);
+		delete m_comItem.Message;
 		m_comItem.Message = NULL;
 	}
 }
@@ -497,10 +499,9 @@ BEGIN_PROTECT_AND_LOG_CODE
 	it = m_hashTable.find(dwCrc32);
 	if (it != m_hashTable.end())
 	{
-		VirtualFree (it->second.ContactName, 0, MEM_RELEASE);
-//		VirtualFree (it->second.ReplyAction, 0, MEM_RELEASE);
-		VirtualFree (it->second.ReplyText, 0, MEM_RELEASE);
-		VirtualFree (it->second.RuleName, 0, MEM_RELEASE);
+		delete it->second.ContactName;
+		delete it->second.ReplyText;
+		delete it->second.RuleName;
 
 		m_hashTable.erase(it);
 		bRetVal = true;

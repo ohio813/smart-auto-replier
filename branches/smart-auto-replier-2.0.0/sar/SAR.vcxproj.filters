@@ -72,6 +72,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="sar.ico" />
-    <None Include="sar.html" />
+    <None Include="sar.def" />
   </ItemGroup>
 </Project>

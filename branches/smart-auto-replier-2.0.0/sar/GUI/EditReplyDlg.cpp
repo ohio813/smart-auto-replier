@@ -56,22 +56,23 @@ LRESULT CEditReplyDlg::OnBtnOKClicked(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /
 {
 	int nLength = 0;
 
-	VirtualFree ((LPVOID)m_commRule.Message, 0, MEM_RELEASE);
+	delete m_commRule.Message;
 
 	nLength = m_editReplyText.GetWindowTextLength();
 
 	if (nLength > SETTINGS_MESSAGE_MAXVALENGTH)	
 	{
-		MessageBox (Translate("message is too big"), g_strPluginName, MB_OK);
+		MessageBox(TranslateTS(TEXT("message is too big")), g_strPluginName, MB_OK);
 
 		return FALSE;
 	}
 	nLength++;
-	m_commRule.Message = reinterpret_cast<char*>(VirtualAlloc (NULL, nLength, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE));
+	m_commRule.Message = new TCHAR[nLength];
 
 	if (!m_commRule.Message)
 		return FALSE;
 	
+	memset(m_commRule.Message, 0, nLength * sizeof(TCHAR));
 	m_editReplyText.GetWindowText((LPTSTR)m_commRule.Message, nLength);
 
 	m_bAllOk = true;

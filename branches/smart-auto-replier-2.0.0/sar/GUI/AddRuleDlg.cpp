@@ -56,7 +56,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 	
 	if (m_dwCRC32)
 	{
-		SetWindowText(Translate("Edit rule"));
+		SetWindowText(TranslateTS(TEXT("Edit rule")));
 		m_editRuleName.SetWindowText(m_item.RuleName);
 		m_editContactName.SetWindowText(m_item.ContactName);
 		m_editReplyText.SetWindowText(m_item.ReplyText);
@@ -103,35 +103,45 @@ LRESULT CAddRuleDlg::OnBtnOKClicked(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 {
 BEGIN_PROTECT_AND_LOG_CODE
 #define ON_ERROR_1BYTE(x) if (x == 1)	{								\
-					MessageBox(Translate("Please, specify longer contact name"), g_strPluginName, MB_OK);	\
+					MessageBox(TranslateTS(TEXT("Please, specify longer contact name")), g_strPluginName, MB_OK);	\
 					return FALSE;		}								
 
-#define ON_ERROR(x) MessageBox(Translate(x), g_strPluginName, MB_OK);	\
+#define ON_ERROR(x) MessageBox(TranslateTS(x), g_strPluginName, MB_OK);	\
 					return FALSE;
 
 	int nLength = m_editRuleName.GetWindowTextLength();
 	if (nLength)
 	{
 		nLength++;
-		m_item.RuleName = reinterpret_cast<LPTSTR>(VirtualAlloc (NULL, nLength, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE));
-		m_editRuleName.GetWindowText(m_item.RuleName, nLength);
+		m_item.RuleName = new TCHAR[nLength];
+
+		if (m_item.RuleName != NULL)
+		{
+			memset(m_item.RuleName, 0, nLength * sizeof(TCHAR));
+			m_editRuleName.GetWindowText(m_item.RuleName, nLength);
+		}
 	}
 	else
 	{
-		ON_ERROR("Please, specify Rule Name")
+		ON_ERROR(TEXT("Please, specify Rule Name"))
 	}
 	
 	nLength = m_editContactName.GetWindowTextLength();
 	if (nLength)
 	{
-		ON_ERROR_1BYTE (nLength)
+		ON_ERROR_1BYTE(nLength)
 		nLength++;
-		m_item.ContactName = reinterpret_cast<LPTSTR>(VirtualAlloc (NULL, nLength, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE));
-		m_editContactName.GetWindowText(m_item.ContactName, nLength);
+		m_item.ContactName = new TCHAR[nLength];
+
+		if (m_item.ContactName != NULL)
+		{
+			memset(m_item.ContactName, 0, nLength * sizeof(TCHAR));
+			m_editContactName.GetWindowText(m_item.ContactName, nLength);
+		}
 	}
 	else
 	{
-		ON_ERROR("Please, specify Contact Name")
+		ON_ERROR(TEXT("Please, specify Contact Name"))
 	}
 
 	nLength = m_editReplyText.GetWindowTextLength();
@@ -139,31 +149,23 @@ BEGIN_PROTECT_AND_LOG_CODE
 	{
 		if (nLength > SETTINGS_MESSAGE_MAXVALENGTH)
 		{
-			MessageBox (Translate("header is too big"), g_strPluginName, MB_OK);
+			MessageBox(TranslateTS(TEXT("header is too big")), g_strPluginName, MB_OK);
 			return FALSE;
 		}
 
 		nLength++;
-		m_item.ReplyText = reinterpret_cast<LPTSTR>(VirtualAlloc (NULL, nLength, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE));
-		m_editReplyText.GetWindowText(m_item.ReplyText, nLength);
+		m_item.ReplyText = new TCHAR[nLength];
+
+		if (m_item.ContactName != NULL)
+		{
+			memset(m_item.ReplyText, 0, nLength * sizeof(TCHAR));
+			m_editReplyText.GetWindowText(m_item.ReplyText, nLength);
+		}		
 	}
 	else
 	{
-		ON_ERROR("Please, specify Reply Text")
-	}
-
-	/*nLength = m_editReplyAction.GetWindowTextLength();
-	if (nLength == 0) /// zero ? lets make fake..
-		nLength++;
-	if (nLength)
-	{
-		nLength++;
-		m_item.ReplyAction = reinterpret_cast<LPTSTR>(VirtualAlloc (NULL, nLength, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE));
-		m_editReplyAction.GetWindowText(m_item.ReplyAction, nLength);
-
-		if (_tcslen(m_item.ReplyAction) == 0 && nLength > 1)
-			_tcscpy(m_item.ReplyAction, " ");
-	}*/
+		ON_ERROR(TEXT("Please, specify Reply Text"))
+	}	
 	
 	{
 		if (m_bEditing)
@@ -175,7 +177,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 		DWORD dwCrc = g_pMessHandler->getSettings().AddReplyAction(m_item, b);
 		if (b)
 		{
-			MessageBox (Translate("Rule with the same contact name already exists"), g_strPluginName, MB_OK);
+			MessageBox(TranslateTS(TEXT("Rule with the same contact name already exists")), g_strPluginName, MB_OK);
 			return FALSE;
 		}
 		

@@ -31,17 +31,21 @@
 
 /// let's advertise myselft and this plugin ;)
 #define ICQPROTONAME		"SAR"
+#if defined( _UNICODE )
 #define ICQPROTODECRSHORT   "Smart Auto Replier"
+#else
+#define ICQPROTODECRSHORT   "Smart Auto Replier"
+#endif
 #define ICQPROTODECR		"Plugin is able to reply on all incoming messages, making possible use of rules that are applied to specific contacts. Plugin allows to use Lua scripts as a rules, thus allowing user to make virtually any type of customizations."
 #define DEVNAME				"Volodymyr M. Shcherbyna"
 #define DEVMAIL				"volodymyr@shcherbyna.com"
 #define DEVCOPYRIGHT		"© 2004-2012 Volodymyr M. Shcherbyna, www.shcherbyna.com"
-#define DEVWWW				"http://shcherbyna.com/forum/viewforum.php?f=8"
+#define DEVWWW				"http://www.shcherbyna.com/forum/viewforum.php?f=8"
 #define GLOB_HOOKS			3
 
 /// global menu items strings...
-#define MENU_ITEM_DISABLE_CAPTION	Translate("Disable Smart Auto Replier")
-#define MENU_ITEM_ENABLE_CAPTION	Translate("Enable Smart Auto Replier")
+#define MENU_ITEM_DISABLE_CAPTION	TranslateTS(TEXT("Disable Smart Auto Replier"))
+#define MENU_ITEM_ENABLE_CAPTION	TranslateTS(TEXT("Enable Smart Auto Replier"))
 
 //#define 
 /// global data...
@@ -55,23 +59,32 @@ CLISTMENUITEM g_miAUR2This = {NULL};		/// handle to menu item that is used to ad
 bool g_bEnableMItem = true;					/// flag for menu item..
 HANDLE g_hMenuItem;							/// global handle to menu service
 CCrushLog CRUSHLOGOBJ;						/// global object that handles all crushes
-LPTSTR g_strPluginName = ICQPROTONAME;		/// global string that represents plugin name...
+LPTSTR g_strPluginName = TEXT(ICQPROTONAME);		/// global string that represents plugin name...
 INT	   g_nCurrentMode = 0;					/// current mode of a protocol == i duno which exactly protocol...
 HANDLE g_hAUR2User = NULL;					/// handle to proto service of "autoreply to this user"
 
+struct MM_INTERFACE mmi;
+
 /// forming an info structure
-PLUGININFO pluginInfo =
+PLUGININFOEX pluginInfo =
 {
-	sizeof(PLUGININFO),
+	sizeof(PLUGININFOEX),
 	ICQPROTODECRSHORT,
-	PLUGIN_MAKE_VERSION(2, 0, 0, 1),
+	PLUGIN_MAKE_VERSION(2, 0, 0, 2),
 	ICQPROTODECR,
 	DEVNAME,
 	DEVMAIL,
 	DEVCOPYRIGHT,
 	DEVWWW,
-	0,		/// "not transient" == saw this in many plugins, let it be here
-	0		/// "doesn't replace anything built-in" == read above ;)
+	UNICODE_AWARE,	
+	0,
+#if defined( _UNICODE )
+	// {B9C9AC38-9D81-45D3-A9D7-67A7D8EA9D29} 
+	{ 0xb9c9ac38, 0x9d81, 0x45d3, { 0xa9, 0xd7, 0x67, 0xa7, 0xd8, 0xea, 0x9d, 0x29 } }
+#else
+	// {9E536082-017E-423B-BF4F-DEDFEB9B3B60}
+	{ 0x9e536082, 0x17e, 0x423b, { 0xbf, 0x4f, 0xde, 0xdf, 0xeb, 0x9b, 0x3b, 0x60 } }
+#endif
 };
 
 /// mapping into mirandaim.exe
@@ -84,30 +97,44 @@ BEGIN_PROTECT_AND_LOG_CODE
 END_PROTECT_AND_LOG_CODE
 }
 
-/// let miranda use ptr to info structure
-extern "C" __declspec(dllexport) PLUGININFO* MirandaPluginInfo(DWORD dwMirandaVersion)
-{
-BEGIN_PROTECT_AND_LOG_CODE
+__declspec(dllexport) PLUGININFOEX* MirandaPluginInfoEx(DWORD mirandaVersion)
+{	
 	return &pluginInfo;
-END_PROTECT_AND_LOG_CODE
+}
+
+static const MUUID interfaces[] = {MIID_CHAT, MIID_SRMM, MIID_LAST};
+
+__declspec(dllexport) const MUUID * MirandaPluginInterfaces(void)
+{
+	return interfaces;
 }
 
 /// handler of event when the options are choosed
 static int OptionsInitialized(WPARAM wp, LPARAM lp)
 {	
 BEGIN_PROTECT_AND_LOG_CODE
-	LPTSTR lpszGroup = Translate("Plugins");
+	LPTSTR lpszGroup = TranslateTS(TEXT("Plugins"));
 	OPTIONSDIALOGPAGE optsDialog = {0};
 	optsDialog.cbSize = sizeof(OPTIONSDIALOGPAGE);
 	optsDialog.hInstance = hInst;	
 	optsDialog.position = 910000000;
-	optsDialog.pszTemplate = MAKEINTRESOURCE(IDD_SDLGHOLDER);
+	optsDialog.pszTemplate = (char*)MAKEINTRESOURCE(IDD_SDLGHOLDER);
 	TCHAR szMax[MAX_PATH] = {0};
-	_tcscpy(szMax, Translate(ICQPROTODECRSHORT));
-	optsDialog.pszTitle = szMax;
+	_tcscpy(szMax, TranslateTS(TEXT(ICQPROTODECRSHORT)));
+	
+#ifdef _UNICODE
+	optsDialog.ptszGroup = lpszGroup;
+	optsDialog.ptszTitle = szMax;
+#else
+	optsDialog.pszTitle = (char*)szMax;
 	optsDialog.pszGroup = lpszGroup;	
+#endif
 	optsDialog.pfnDlgProc = (DLGPROC)&CSettingsDlgHolder::FakeDlgProc;
 	optsDialog.flags = ODPF_BOLDGROUPS/*|ODPF_EXPERTONLY*/; /// some lames are scaring that option...
+#ifdef _UNICODE
+	optsDialog.flags |= ODPF_UNICODE;
+#endif
+	
 	g_pSettingsDlg->m_bDestroying = false;
 	CallService(MS_OPT_ADDPAGE, wp, reinterpret_cast<LPARAM>(&optsDialog));
 END_PROTECT_AND_LOG_CODE
@@ -145,7 +172,7 @@ static int AUR2User(WPARAM wParam, LPARAM lParam)
 	//item.ReplyAction = " ";
 	item.ReplyText = SETTINGS_DEF_MESSAGE_RULE;
 	TCHAR rulename[MAX_PATH * 5] = {0};
-	_tcscat(rulename, "reply to ");
+	_tcscat(rulename, TEXT("reply to "));
 	_tcscat(rulename, item.ContactName);
 	item.RuleName = rulename;
 
@@ -179,7 +206,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 	/// put here stuff to do
 	TCHAR sz[MAX_PATH] = {0};
 	_tcscpy(sz, (g_bEnableMItem == true ? MENU_ITEM_DISABLE_CAPTION : MENU_ITEM_ENABLE_CAPTION));
-	g_mi.pszName = Translate(sz);
+	g_mi.pszName = (char*)TranslateTS(sz);
 	g_mi.flags = CMIM_NAME;
 #ifdef _DEBUG
 	int nretval = 
@@ -285,7 +312,7 @@ int OnModulesLoaded(WPARAM wParam, LPARAM lParam)
 	update.cbSize = sizeof(Update);
 
 	update.szComponentName	= pluginInfo.shortName;
-	update.pbVersion		= (BYTE *)CreateVersionStringPlugin(&pluginInfo, szVersion);
+	update.pbVersion		= (BYTE*)CreateVersionStringPluginEx(&pluginInfo, szVersion);
 	update.cpbVersion		= strlen((char*)update.pbVersion);
 
 	// these are the three lines that matter - the archive, the page containing the version string, and the text (or data) 
@@ -318,7 +345,8 @@ extern "C" int __declspec(dllexport) Load(PLUGINLINK *link)
 #endif
 #ifdef _DEBUG
 	//MessageBox (NULL, __FUNCTION__, __FILE__, MB_OK);
-#endif
+#endif	
+
 	CCrushLog::Init(); /// crushes manager should be inited first
 	int nRetVal = 0;
 BEGIN_PROTECT_AND_LOG_CODE	
@@ -328,7 +356,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 	/// creates help file near plugin
 	/// if it is absent...
 	/// note: originally help is in recources of plugin
-	CheckForHelpFile();
+	//CheckForHelpFile();
 #endif
 					 /// main manager...
 	g_pMessHandler = new CMessagesHandler();
@@ -366,8 +394,14 @@ BEGIN_PROTECT_AND_LOG_CODE
 		bool bVal = g_pMessHandler->getSettings().getSettings().bEnabled;
 		TCHAR sz[MAX_PATH] = {0};
 		_tcscpy(sz, bVal ? MENU_ITEM_DISABLE_CAPTION : MENU_ITEM_ENABLE_CAPTION);
-		g_mi.pszName = Translate(sz);
+#ifdef _UNICODE
+		g_mi.ptszName = TranslateTS(sz);
+		g_mi.flags = CMIF_UNICODE;
+#else
+		g_mi.pszName = (char*)TranslateTS(sz);
+#endif
 		g_mi.pszService = "AUR/MenuCommand";
+
 		g_hMenuItem = (HANDLE)CallService(MS_CLIST_ADDMAINMENUITEM, 0, (LPARAM)&g_mi);
 		g_bEnableMItem = !bVal;
 
@@ -378,14 +412,19 @@ BEGIN_PROTECT_AND_LOG_CODE
 		g_miAUR2This.flags = 0;
 		g_miAUR2This.hIcon = LoadIcon(hInst, MAKEINTRESOURCE(IDI_SAR_ICON));
 		g_miAUR2This.pszContactOwner = NULL;
-		g_miAUR2This.pszName = Translate("&Smart Auto Reply to this user ...");
+#ifdef _UNICODE
+		g_miAUR2This.ptszName = TranslateTS(TEXT("&Smart Auto Reply to this user ..."));
+		g_miAUR2This.flags = CMIF_UNICODE;
+#else
+		g_miAUR2This.pszName = TranslateTS(TEXT("&Smart Auto Reply to this user ..."));
+#endif
 		CreateServiceFunction("AUR/AURToThis", AUR2User);
 		g_miAUR2This.pszService = "AUR/AURToThis";
 		g_hAUR2User = (HANDLE)CallService(MS_CLIST_ADDCONTACTMENUITEM, 0, (LPARAM)&g_miAUR2This);
 		HookEvent(ME_CLIST_PREBUILDCONTACTMENU, AURContactPreBuildMenu);
 	}
 
-	//nRetVal = RegisterWithUpdater(0, 0);
+	CallService(MS_SYSTEM_GET_MMI, 0, (LPARAM)&mmi);
 
 END_PROTECT_AND_LOG_CODE
 	return FALSE;
