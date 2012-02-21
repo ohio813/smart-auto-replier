@@ -62,7 +62,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 	    int nPos = static_cast<int>(ptr - lpString + 1);
 		if (!nPos)
 			return false;
-		char *szPrev = reinterpret_cast<char*>(VirtualAlloc(NULL, nPos, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE));
+		char *szPrev = new char[nPos];
 		
 		if (!szPrev)
 			return false;
@@ -72,10 +72,10 @@ BEGIN_PROTECT_AND_LOG_CODE
 		int nSize2 =  nLength - nPos2 + 1;		
 		if (nSize2 == 0)
 			nSize2++;
-		char *szPost = reinterpret_cast<char*>(VirtualAlloc(NULL, nSize2, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE));
+		char *szPost = new char[nSize2];
 		if (!szPost)
 		{
-			VirtualFree (szPrev, NULL, MEM_RELEASE);
+			delete szPrev;
 			return false;
 		}
 		ptr += strlen(strReplWhat);
@@ -89,8 +89,8 @@ BEGIN_PROTECT_AND_LOG_CODE
 		if (nPos == 1)
 			strcat(lpString, " ");
 		strcat(lpString, szPost);
-		VirtualFree (szPrev, NULL, MEM_RELEASE);
-		VirtualFree (szPost, NULL, MEM_RELEASE);
+		delete szPrev;
+		delete szPost;
 
 		return Replace(lpString, strReplWhat, strReplWith);
 	}
@@ -102,7 +102,7 @@ END_PROTECT_AND_LOG_CODE
 
 /// returnes message that is replied to contact.
 /// the core of a plugin ;) (a joke..)
-bool CScriptsReader::GetReturnMessage(LPSTR lpContactName, LPSTR & lpMsg, LPTSTR & lpIncomingMsg)
+bool CScriptsReader::GetReturnMessage(LPTSTR lpContactName, LPTSTR & lpMsg, LPTSTR & lpIncomingMsg)
 {
 BEGIN_PROTECT_AND_LOG_CODE
 	DWORD dwSizeOfMess = SETTINGS_MESSAGE_MAXVALENGTH + SETTINGS_HEADER_MAXVALENGTH;
@@ -120,13 +120,15 @@ BEGIN_PROTECT_AND_LOG_CODE
 		lpPrev = lpMsg;
 	}
 
-	lpMsg = reinterpret_cast<LPSTR>(VirtualAlloc (NULL, dwSizeOfMess, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE));
+	lpMsg = new TCHAR[dwSizeOfMess];
+
+	memset(lpMsg, 0, dwSizeOfMess * sizeof(TCHAR));
 	
 	COMMON_RULE_ITEM & commRule = g_pMessHandler->getSettings().getStorage().getCommonRule();
 
 	if (!bspecific)
 	{
-		//_tcscpy(lpMsg, commRule.Header);
+		_tcscpy(lpMsg, commRule.Message);
 	}
 	else
 	{
@@ -134,7 +136,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 		VirtualFree (lpPrev, NULL, MEM_RELEASE);
 	}
 
-	TCHAR strDate[0x100] = {0};
+	/*TCHAR strDate[0x100] = {0};
 	SYSTEMTIME t = {0};
 	GetLocalTime(&t);
 	sprintf(strDate, "[%d-%d-%d %d-%d-%d]", t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
@@ -161,7 +163,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 		/// free (lptMMess);
 	}
 
-	Replace(lpMsg, SETTINGS_SCRIPT_INCOMMINGMESSAGE, lpIncomingMsg);
+	Replace(lpMsg, SETTINGS_SCRIPT_INCOMMINGMESSAGE, lpIncomingMsg);*/
 	
 	if (lpMsg)
 		return true;

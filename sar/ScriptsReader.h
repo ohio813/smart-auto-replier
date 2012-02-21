@@ -49,7 +49,7 @@ public:
 	~CScriptsReader(void);
 public:
 	ACTIONS ParceString(LPTSTR & strMessage);
-	bool GetReturnMessage(LPSTR lpContactName, LPSTR & lpMsg, LPTSTR & lpIncomingMsg);
+	bool GetReturnMessage(LPTSTR lpContactName, LPTSTR & lpMsg, LPTSTR & lpIncomingMsg);
 	static bool Replace(LPSTR & lpString, LPSTR strReplWhat, LPSTR & strReplWith);
 private:
 	void InternalInit(void);
