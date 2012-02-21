@@ -54,13 +54,13 @@ void CSelectUserDlg::RebuildCL()
 {
 BEGIN_PROTECT_AND_LOG_CODE
 	HANDLE hContact= reinterpret_cast<HANDLE> (CallService(MS_DB_CONTACT_FINDFIRST, 0, 0));
-	char* szContactName = NULL;
-	char* szProto = NULL;
+	TCHAR* szContactName = NULL;
+	TCHAR* szProto = NULL;
 	DWORD wId = 0;
 	while (hContact != NULL)
 	{
 		szContactName = g_pMessHandler->GetContactName(hContact);		
-		szProto = (char*)CallService(MS_PROTO_GETCONTACTBASEPROTO, (WPARAM)hContact, 0);
+		szProto = (TCHAR*)CallService(MS_PROTO_GETCONTACTBASEPROTO, (WPARAM)hContact, 0);
 		if (szProto)
 		{
 			size_t nPos = -1;

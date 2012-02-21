@@ -61,7 +61,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 
 	TCITEM ti = {0};
 	ti.mask = TCIF_TEXT;
-	ti.pszText = Translate("General");
+	ti.pszText = TranslateTS(TEXT("General"));
 	ti.cchTextMax = _tcslen(ti.pszText);
 	m_tabCtrl.InsertItem(0, &ti);
 	/*ti.pszText = Translate("About");
@@ -75,7 +75,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 	/// #warning 
 	/// copy paste from OnNotify(), fix later
 	/*m_statusMsg.SetWindowText(Translate("General options, provides basic functionality."));*/
-	m_statusMsg.SetWindowText(Translate(""));
+	m_statusMsg.SetWindowText(TranslateTS(TEXT("")));
 	m_generalOpt.SetWindowPos(NULL, 7, 23, NULL, NULL, SWP_NOSIZE);
 	m_generalOpt.ShowWindow(SW_SHOW);	
 
@@ -121,7 +121,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 		/// let's make a switch by dialogs...
 		if (nSel == 0)
 		{
-			m_statusMsg.SetWindowText(Translate("General options, provides basic functionality."));
+			m_statusMsg.SetWindowText(TranslateTS(TEXT("General options, provides basic functionality.")));
 			m_generalOpt.ShowWindow(SW_SHOW);
 			m_generalOpt.SetWindowPos(NULL, 7, 23, NULL, NULL, SWP_NOSIZE);
 		}

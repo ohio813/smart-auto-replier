@@ -6,7 +6,6 @@
 #define IDD_ADDRULE_DLG                 102
 #define IDI_SAR_ICON                    103
 #define IDD_SET_AURMESSAGEDLG           104
-#define IDR_REAME                       109
 #define IDD_SEL_USER                    110
 #define IDD_HISTORYLOGS                 111
 #define IDD_SDLGHOLDER                  113

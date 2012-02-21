@@ -48,7 +48,7 @@ END_PROTECT_AND_LOG_CODE
 	return FALSE;
 }
 
-COptionsDlg::COptionsDlg(void) : m_bShown(false)
+COptionsDlg::COptionsDlg(void) : m_bShown(false), m_szMessage(NULL)
 {
 BEGIN_PROTECT_AND_LOG_CODE
 ///g_optionsDlg.m_bDestroying = false;
@@ -93,15 +93,15 @@ BEGIN_PROTECT_AND_LOG_CODE
 	m_chDisWMB = GetDlgItem(IDC_CH_DISWHSB);
 	m_chSaveAURSToHist = GetDlgItem(IDC_CH_SAVE_AURS);
 
-	m_cbModeTypes.AddString(Translate("DND/NA/Away/Occupied modes"));
-	m_cbModeTypes.AddString(Translate("DND mode"));
-	m_cbModeTypes.AddString(Translate("NA mode"));
-	m_cbModeTypes.AddString(Translate("Away mode"));
-	m_cbModeTypes.AddString(Translate("Occupied mode"));
+	m_cbModeTypes.AddString(TranslateTS(TEXT("DND/NA/Away/Occupied modes")));
+	m_cbModeTypes.AddString(TranslateTS(TEXT("DND mode")));
+	m_cbModeTypes.AddString(TranslateTS(TEXT("NA mode")));
+	m_cbModeTypes.AddString(TranslateTS(TEXT("Away mode")));
+	m_cbModeTypes.AddString(TranslateTS(TEXT("Occupied mode")));
 
-	m_cbDisWMBTypes.AddString(Translate("Online/Free for chat modes"));
-	m_cbDisWMBTypes.AddString(Translate("Online mode"));
-	m_cbDisWMBTypes.AddString(Translate("Free for chat mode"));	
+	m_cbDisWMBTypes.AddString(TranslateTS(TEXT("Online/Free for chat modes")));
+	m_cbDisWMBTypes.AddString(TranslateTS(TEXT("Online mode")));
+	m_cbDisWMBTypes.AddString(TranslateTS(TEXT("Free for chat mode")));	
 
 	COMMON_RULE_ITEM & commRules = g_pMessHandler->getSettings().getStorage().getCommonRule();
 	REPLYER_SETTINGS & settings = g_pMessHandler->getSettings().getSettings();	
@@ -168,18 +168,21 @@ BEGIN_PROTECT_AND_LOG_CODE
 	m_editReplayDelay.SetWindowText(_itot(nLength, strNumber, 10));
 	m_nReplayDelay = nLength;
 
-	LPCSTR str = commRules.Message;
+	TCHAR* str = commRules.Message;
 	m_editMessageText.SetWindowText(str);	
 		
 	if (m_szMessage)
 	{
-		VirtualFree (m_szMessage, NULL, MEM_RELEASE);
+		delete m_szMessage;
 		m_szMessage = NULL;
 	}
 
-	m_szMessage = reinterpret_cast<char*>(VirtualAlloc (NULL, SETTINGS_MESSAGE_MAXVALENGTH, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE));
+	m_szMessage = new TCHAR[SETTINGS_MESSAGE_MAXVALENGTH];
+
 	if (!m_szMessage)
 		return FALSE;
+
+	memset(m_szMessage, 0, SETTINGS_MESSAGE_MAXVALENGTH * sizeof(TCHAR));
 
 	m_editMessageText.GetWindowText(m_szMessage, SETTINGS_MESSAGE_MAXVALENGTH);
 
@@ -310,17 +313,18 @@ BEGIN_PROTECT_AND_LOG_CODE
 
 	if (nLength > SETTINGS_MESSAGE_MAXVALENGTH)	
 	{
-		MessageBox (Translate("too big size"), g_strPluginName, MB_OK);
+		MessageBox(TranslateTS(TEXT("too big size")), g_strPluginName, MB_OK);
 		m_editMessageText.SetWindowText(m_szMessage);
 
 		return FALSE;
 	}
 	nLength++;
-	LPTSTR str2 = reinterpret_cast<char*>(VirtualAlloc (NULL, nLength, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE));
+	LPTSTR str2 = new TCHAR[nLength];
 
 	if (!str2)
 		return FALSE;
 	
+	memset(str2, 0, nLength * sizeof(TCHAR));
 	m_editMessageText.GetWindowText(str2, nLength);
 
 	if (_tcscmp(m_szMessage, str2) != 0)
@@ -329,7 +333,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 		OnNotifyAboutChanges();
 	}
 
-	VirtualFree (str2, NULL, MEM_RELEASE);	
+	delete str2;
 END_PROTECT_AND_LOG_CODE
 	return FALSE;
 }
@@ -404,7 +408,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 		DWORD dwptr = static_cast<DWORD>(m_listRules.GetItemData(nIndex));
 		if (dwptr)/// we have ptr
 		{
-			if (MessageBox (Translate("Do you really want delete selected rule ?"), g_strPluginName, MB_YESNO) == IDNO)
+			if (MessageBox(TranslateTS(TEXT("Do you really want delete selected rule ?")), g_strPluginName, MB_YESNO) == IDNO)
 				return FALSE;
 
 			CRulesStorage & hash = g_pMessHandler->getSettings().getStorage();
@@ -510,7 +514,7 @@ END_PROTECT_AND_LOG_CODE
 LRESULT COptionsDlg::OnRefreshOptions(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 BEGIN_PROTECT_AND_LOG_CODE
-	MessageBox (Translate("Options are changed in another dialog"), g_strPluginName, MB_OK);
+	MessageBox (TranslateTS(TEXT("Options are changed in another dialog")), g_strPluginName, MB_OK);
 	///OnNotifyAboutChanges();
 END_PROTECT_AND_LOG_CODE
 	return FALSE;

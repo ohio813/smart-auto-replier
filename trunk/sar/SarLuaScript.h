@@ -36,6 +36,8 @@ private:
 	int SendMessage(CLuaBridge & luaBridge);
 	int GetMyStatus(CLuaBridge & luaBridge);
 	int SetMyStatus(CLuaBridge & luaBridge);
+	int Wait(CLuaBridge & luaBridge);
+	int FindUser(CLuaBridge & luaBridge);
 
 protected:
 	int ScriptCalling(CLuaBridge & luaBridge, int nFncNumber);	

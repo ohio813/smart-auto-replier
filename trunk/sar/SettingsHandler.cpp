@@ -44,7 +44,6 @@ CSettingsHandler::~CSettingsHandler(void)
 BEGIN_PROTECT_AND_LOG_CODE
 	DeInit();
 	m_rulesStorage.Flush();
-	m_rulesStorage.DeInit();
 END_PROTECT_AND_LOG_CODE
 }
 
@@ -142,7 +141,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 
 		m_Settings.bDisableWhenMirandaIsOn = SETTINGS_DEF_COMMON_DWMION;
 		m_Settings.ReplayDelay = SETTINGS_DEF_COMMON_VALREPDELAY;
-		m_Settings.bEnabled = false;
+		m_Settings.bEnabled = true;
 		m_Settings.bFirstRun  = !m_bResettings;
 		m_Settings.bSaveToHistory = false;
 
@@ -156,7 +155,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 			if (szreadme)
 			{			
 				//MakeFullPath(szreadme, MAX_PATH, READMEFILE);
-				::ShellExecute(NULL, "open", TEXT("http://www.shcherbyna.com/?page_id=1747"), NULL, NULL, SW_SHOW);
+				::ShellExecute(NULL, TEXT("open"), TEXT("http://www.shcherbyna.com/?page_id=1747"), NULL, NULL, SW_SHOW);
 				//::ShellExecute(NULL, "open", TEXT("http://shcherbyna.com/forum/viewforum.php?f=8"), NULL, NULL, SW_SHOW);
 
 				delete szreadme;
