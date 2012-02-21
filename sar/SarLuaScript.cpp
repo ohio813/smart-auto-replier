@@ -28,12 +28,16 @@
 #include "../miranda32/m_protosvc.h"
 
 extern INT g_nCurrentMode;
+extern CMessagesHandler *g_pMessHandler;
 
 CSarLuaScript::CSarLuaScript(CLuaBridge & luaBridge) : CLuaScript(luaBridge)
 {
 	m_nFuncBaseIndex = RegisterFunction("SendMessage");
+
 	RegisterFunction("GetMyStatus");
-	RegisterFunction("SetMyStatus");	
+	RegisterFunction("SetMyStatus");
+	RegisterFunction("Wait");
+	RegisterFunction("FindUser");
 }
 
 CSarLuaScript::~CSarLuaScript(void)
@@ -52,6 +56,12 @@ int CSarLuaScript::ScriptCalling(CLuaBridge & luaBridge, int nFncNumber)
 
 	case 2:
 		return SetMyStatus(luaBridge);
+
+	case 3:
+		return Wait(luaBridge);
+
+	case 4:
+		return FindUser(luaBridge);
 	}
 
 	return FALSE;
@@ -185,6 +195,54 @@ int CSarLuaScript::SetMyStatus(CLuaBridge & luaBridge)
 	}
 
 	CallService(MS_CLIST_SETSTATUSMODE, (WPARAM)nNewStatus, (LPARAM)0);
+
+	return FALSE;
+}
+
+int CSarLuaScript::Wait(CLuaBridge & luaBridge)
+{
+	lua_State *pFunctionContext = (lua_State*)luaBridge;
+
+	int nSleepInterval = (int)lua_tonumber(pFunctionContext, -1);
+
+	Sleep(1000 * nSleepInterval);
+
+	return FALSE;
+}
+
+int CSarLuaScript::FindUser(CLuaBridge & luaBridge)
+{
+	lua_State *pFunctionContext = (lua_State*)luaBridge;
+
+	const TCHAR * szUser	 = (TCHAR*)lua_tostring(pFunctionContext, -2);
+	const TCHAR * szProtocol = (TCHAR*)lua_tostring(pFunctionContext, -1);	
+
+	if (szProtocol == NULL || szUser == NULL)
+	{
+		return FALSE;
+	}
+
+	HANDLE	hContact		= reinterpret_cast<HANDLE>(CallService(MS_DB_CONTACT_FINDFIRST, 0, 0));
+	TCHAR*	szContactName	= NULL;
+	TCHAR*	szProto			= NULL;
+	DWORD	wId				= 0;
+
+	while (hContact != NULL)
+	{
+		szContactName = g_pMessHandler->GetContactName(hContact);
+		szProto		  = (TCHAR*)CallService(MS_PROTO_GETCONTACTBASEPROTO, (WPARAM)hContact, 0);
+
+		if (szProto && szContactName)
+		{
+			if ( (_tcscmp(szUser, szContactName)) == 0 && (_tcscmp(szProto, szProtocol) == 0))
+			{
+				AddParam((int)hContact);
+				return TRUE;
+			}
+		}
+
+		hContact = reinterpret_cast<HANDLE> (CallService(MS_DB_CONTACT_FINDNEXT,(WPARAM) hContact, 0));
+	}
 
 	return FALSE;
 }

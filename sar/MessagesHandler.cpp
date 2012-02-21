@@ -224,8 +224,13 @@ END_PROTECT_AND_LOG_CODE
 
 LPTSTR CMessagesHandler::GetContactName(HANDLE hContact)
 {
+	LPARAM lFlags = GCDNF_NOMYHANDLE;
+
+#ifdef _UNICODE
+	lFlags |= GCDNF_UNICODE;
+#endif
 BEGIN_PROTECT_AND_LOG_CODE
-	return reinterpret_cast<LPTSTR>(CallService(MS_CLIST_GETCONTACTDISPLAYNAME, (WPARAM)hContact, GCDNF_NOMYHANDLE));
+	return reinterpret_cast<LPTSTR>(CallService(MS_CLIST_GETCONTACTDISPLAYNAME, (WPARAM)hContact, lFlags));
 END_PROTECT_AND_LOG_CODE
 	return NULL;
 }
@@ -254,7 +259,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 	
 	ZeroMemory(&dbei, sizeof(dbei));
 	dbei.cbSize = sizeof(dbei);
-	dbei.cbBlob = 0;
+	dbei.cbBlob = 0;	
 
 	CallService(MS_DB_EVENT_GET, lp, (LPARAM)&dbei); /// detect size of msg
 
@@ -269,13 +274,20 @@ BEGIN_PROTECT_AND_LOG_CODE
 			return FALSE;
 		}
 
-		dbei.pBlob = reinterpret_cast<LPBYTE>(VirtualAlloc(NULL, dbei.cbBlob, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
+		dbei.pBlob = new BYTE[dbei.cbBlob];
 
 		if (dbei.pBlob)
 		{
+			LPARAM lParam = GCDNF_NOMYHANDLE;
+
+#ifdef _UNICODE
+			lParam |= GCDNF_UNICODE;
+#endif
 			CallService(MS_DB_EVENT_GET, lp, reinterpret_cast<LPARAM>(&dbei));
 
-			char* szContactName = reinterpret_cast<char*>(CallService(MS_CLIST_GETCONTACTDISPLAYNAME, wp, GCDNF_NOMYHANDLE));
+			TCHAR * szMessage = DbGetEventTextT(&dbei, 0);
+
+			TCHAR * szContactName = reinterpret_cast<TCHAR*>(CallService(MS_CLIST_GETCONTACTDISPLAYNAME, wp, lParam));
 
 			CMessagesHandler *ptrHolder = NULL;
 			ptrHolder = CMessagesHandler::GetObject();
@@ -286,7 +298,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 			if (!ptrHolder->AllowReply(hContact))
 				return FALSE;
 
-			LPSTR lpMessage = NULL;
+			TCHAR * lpMessage = NULL;
 
 			{
 				RULE_METAINFO inf = {0};
@@ -296,7 +308,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 				/// message - it's stored in lpMessage
 				/// then - just sent it to user
 				CSettingsHandler & settingsManager = ptrHolder->getSettings();
-				settingsManager.getStorage().IsRuleMatch(inf, lpMessage, reinterpret_cast<LPTSTR&>(dbei.pBlob));
+				settingsManager.getStorage().IsRuleMatch(inf, lpMessage, szMessage);
 
 				{
 					/// do the lua trick
@@ -305,7 +317,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 
 					script.CompileScript(lpMessage, _tcslen(lpMessage));
 	
-					script.SelectScriptFunction ("SAR");
+					script.SelectScriptFunction("SAR");
 					script.AddParam((int)hContact);
 					script.AddParam((char *)dbei.pBlob);
 					script.AddParam(szContactName);
@@ -313,8 +325,10 @@ BEGIN_PROTECT_AND_LOG_CODE
 					script.Run();
 				}
 
-				VirtualFree(lpMessage, NULL, MEM_RELEASE);
-				VirtualFree(dbei.pBlob, NULL, MEM_RELEASE);
+				mir_free(szMessage);
+				
+				delete lpMessage;
+				delete dbei.pBlob;
 
 				return FALSE;
 			}
@@ -327,12 +341,13 @@ END_PROTECT_AND_LOG_CODE
 
 void CMessagesHandler::WriteToHistory(LPTSTR lpMsg, HANDLE hContact)
 {
-	LPTSTR lp1 = Translate("Generated autoreply:\r\n");
+	LPTSTR lp1 = TranslateTS(TEXT("Generated autoreply:\r\n"));
 
-	LPTSTR lpszMess = reinterpret_cast<LPTSTR>(VirtualAlloc (NULL, _tcslen(lpMsg) + _tcslen(lp1), MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE));
+	LPTSTR lpszMess = new TCHAR[_tcslen(lpMsg) + _tcslen(lp1)];
 	if (lpszMess == NULL)
 		return;
 	
+	memset(lpszMess, 0, (_tcslen(lpMsg) + _tcslen(lp1)) * sizeof(TCHAR));
 	_tcscpy(lpszMess, lp1);
 	_tcscat(lpszMess, lpMsg);
 
@@ -345,7 +360,8 @@ void CMessagesHandler::WriteToHistory(LPTSTR lpMsg, HANDLE hContact)
 	dbei.cbBlob = _tcslen(lpszMess) + 1;
 	dbei.pBlob = (PBYTE)lpszMess;
 	CallService(MS_DB_EVENT_ADD, (WPARAM)hContact, (LPARAM)&dbei);
-	VirtualFree (lpszMess, NULL, MEM_RELEASE);
+
+	delete lpszMess;
 }
 
 /// getting settings..

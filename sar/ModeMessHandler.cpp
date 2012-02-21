@@ -34,22 +34,22 @@ CModeMessHandler::~CModeMessHandler(void)
 {
 }
 
-char * CModeMessHandler::StatusModeToDbSetting(int status,const char *suffix)
+TCHAR * CModeMessHandler::StatusModeToDbSetting(int status, TCHAR *suffix)
 {
     LPTSTR prefix;
 	static TCHAR str[64] = {0};
 
 	switch(status) {
-		case ID_STATUS_AWAY: prefix = "Away";	break;
-		case ID_STATUS_NA: prefix = "Na";	break;
-		case ID_STATUS_DND: prefix = "Dnd"; break;
-		case ID_STATUS_OCCUPIED: prefix = "Occupied"; break;
-		case ID_STATUS_FREECHAT: prefix = "FreeChat"; break;
-		case ID_STATUS_ONLINE: prefix = "On"; break;
-		case ID_STATUS_OFFLINE: prefix = "Off"; break;
-		case ID_STATUS_INVISIBLE: prefix = "Inv"; break;
-		case ID_STATUS_ONTHEPHONE: prefix = "Otp"; break;
-		case ID_STATUS_OUTTOLUNCH: prefix = "Otl"; break;
+		case ID_STATUS_AWAY: prefix = TEXT("Away");	break;
+		case ID_STATUS_NA: prefix = TEXT("Na");	break;
+		case ID_STATUS_DND: prefix = TEXT("Dnd"); break;
+		case ID_STATUS_OCCUPIED: prefix = TEXT("Occupied"); break;
+		case ID_STATUS_FREECHAT: prefix = TEXT("FreeChat"); break;
+		case ID_STATUS_ONLINE: prefix = TEXT("On"); break;
+		case ID_STATUS_OFFLINE: prefix = TEXT("Off"); break;
+		case ID_STATUS_INVISIBLE: prefix = TEXT("Inv"); break;
+		case ID_STATUS_ONTHEPHONE: prefix = TEXT("Otp"); break;
+		case ID_STATUS_OUTTOLUNCH: prefix = TEXT("Otl"); break;
 		default: 
 			return NULL;
 	}
@@ -63,16 +63,16 @@ LPTSTR CModeMessHandler::GetDefaultMessage(INT status)
 {
 	switch (status)
 	{
-		case ID_STATUS_AWAY:	return Translate("I've been away since %time%.");
-		case ID_STATUS_NA:		return Translate("Give it up, I'm not in!");
-		case ID_STATUS_OCCUPIED: return Translate("Not right now.");
-		case ID_STATUS_DND: return Translate("Give a guy some peace, would ya?");
-		case ID_STATUS_FREECHAT: return Translate("Well, I would talk to you if Miranda IM supported chat");
-		case ID_STATUS_ONLINE: return Translate("Yep, I'm here.");
-		case ID_STATUS_OFFLINE: return Translate("Nope, not here.");
-		case ID_STATUS_INVISIBLE: return Translate("I'm hiding from the mafia.");
-		case ID_STATUS_ONTHEPHONE: return Translate("That'll be the phone.");
-		case ID_STATUS_OUTTOLUNCH: return Translate("Mmm...food.");
+		case ID_STATUS_AWAY:	return TranslateTS(TEXT("I've been away since %time%."));
+		case ID_STATUS_NA:		return TranslateTS(TEXT("Give it up, I'm not in!"));
+		case ID_STATUS_OCCUPIED: return TranslateTS(TEXT("Not right now."));
+		case ID_STATUS_DND: return TranslateTS(TEXT("Give a guy some peace, would ya?"));
+		case ID_STATUS_FREECHAT: return TranslateTS(TEXT("Well, I would talk to you if Miranda IM supported chat"));
+		case ID_STATUS_ONLINE: return TranslateTS(TEXT("Yep, I'm here."));
+		case ID_STATUS_OFFLINE: return TranslateTS(TEXT("Nope, not here."));
+		case ID_STATUS_INVISIBLE: return TranslateTS(TEXT("I'm hiding from the mafia."));
+		case ID_STATUS_ONTHEPHONE: return TranslateTS(TEXT("That'll be the phone."));
+		case ID_STATUS_OUTTOLUNCH: return TranslateTS(TEXT("Mmm...food."));
 	}
 	return NULL;
 }
@@ -82,16 +82,16 @@ LPTSTR CModeMessHandler::GetDefaultMessage(INT status)
 /// read notes in the place where this func is used
 LPTSTR CModeMessHandler::GetModeMessage(INT statusMode)
 {
-	DBVARIANT dbv = {0};
+	/*DBVARIANT dbv = {0};
 	INT nretVal = {0};	/// suppose failure..
 
-	nretVal = DBGetContactSetting(NULL, "SRAway", StatusModeToDbSetting(statusMode, "Msg"), &dbv);
+	nretVal = DBGetContactSetting(NULL, TCHAR("SRAway"), StatusModeToDbSetting(statusMode, TCHAR("Msg")), &dbv);
 	if (nretVal) /// unable to get away msg...
 	{
 		dbv.pszVal = _tcsdup(GetDefaultMessage(statusMode));
 		if (dbv.pszVal == NULL) /// maybe will occure ;)
 		{
-			DBGetContactSetting(NULL, "SRAway", StatusModeToDbSetting(statusMode, "Default"), &dbv);
+			DBGetContactSetting(NULL, TCHAR("SRAway"), StatusModeToDbSetting(statusMode, TCHAR("Default")), &dbv);
 		}
 	}
 
@@ -101,17 +101,19 @@ LPTSTR CModeMessHandler::GetModeMessage(INT statusMode)
 	{
 		if (dbv.pszVal[i] != '%')
 			continue;
-		if (!_tcsncicmp(dbv.pszVal+i, "%time%", 6))
+		if (!_tcsncicmp((TCHAR*)dbv.pszVal+i, TEXT("%time%"), 6))
 			GetTimeFormat(LOCALE_USER_DEFAULT, TIME_NOSECONDS, NULL, NULL, substituteStr, sizeof(substituteStr) / sizeof (TCHAR));
-		else if (!_tcsncicmp(dbv.pszVal+i, "%date%", 6))
+		else if (!_tcsncicmp((TCHAR*)dbv.pszVal+i, TEXT("%date%"), 6))
 			GetDateFormat(LOCALE_USER_DEFAULT, DATE_SHORTDATE, NULL, NULL, substituteStr, sizeof(substituteStr) / sizeof(TCHAR));
 		else
 			continue;
 		if (_tcslen(substituteStr) > 6) 
-			dbv.pszVal = (LPTSTR)realloc(dbv.pszVal, _tcslen(dbv.pszVal) + 1 + _tcslen(substituteStr) - 6);
+			dbv.pszVal = ((TCHAR*))realloc((TCHAR*)dbv.pszVal, _tcslen((TCHAR*)dbv.pszVal) + 1 + _tcslen(substituteStr) - 6);
 		MoveMemory(dbv.pszVal + i + _tcslen(substituteStr), dbv.pszVal + i + 6, _tcslen(dbv.pszVal) - i - 5);
 		CopyMemory(dbv.pszVal + i, substituteStr, _tcslen(substituteStr));
-	}
+	}*/
 
-	return dbv.pszVal;
+	//return dbv.pszVal;
+
+	return NULL;
 }

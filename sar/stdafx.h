@@ -23,6 +23,9 @@
 
 #include "AggressiveOptimize.h"
 
+#undef _WIN32_WINNT 
+#define _WIN32_WINNT 0x0500
+
 #define WIN32_LEAN_AND_MEAN
 #define _MERGE_RDATA_
 
@@ -67,8 +70,5 @@
 #include "crushlog.h"			/// crush log handler
 
 #define REFRESH_OPTS_MSG	WM_USER + 666
-
-#undef _WIN32_WINNT 
-#define _WIN32_WINNT 0x0500
 
 void OnRefreshSettings(void);
