@@ -243,6 +243,80 @@ END_PROTECT_AND_LOG_CODE
 	return 0;
 }
 
+/**   Convert unicode to ansi (utf16 to utf8)
+
+    * @return ansi string or null
+*/
+char* Utf16toUtf8(LPCWSTR lpwszStrIn, UINT & nSize)
+{
+	LPSTR pszOut = NULL;
+
+	if (lpwszStrIn != NULL)
+	{
+
+#define SAFE_DELTA 2
+
+		int nInputStrLen	= (int)wcslen(lpwszStrIn);
+		int nOutputStrLen	= WideCharToMultiByte(CP_UTF8, 0, lpwszStrIn, nInputStrLen, NULL, 0, 0, 0);
+
+		if (nOutputStrLen == 0)
+		{
+			return NULL;
+		}
+		
+		nOutputStrLen += SAFE_DELTA;
+
+		pszOut = (LPSTR)malloc(nOutputStrLen);
+
+		if (pszOut)
+		{
+			nSize = nOutputStrLen - SAFE_DELTA;
+			memset(pszOut, 0x00, nOutputStrLen);
+
+			WideCharToMultiByte(CP_UTF8, 0, lpwszStrIn, nInputStrLen, pszOut, nOutputStrLen, 0, 0);
+		}
+	}
+
+	return pszOut;
+}
+
+/**   Convert unicode to ansi (utf16 to utf8)
+
+    * @return ansi string or null
+*/
+wchar_t* Utf8toUtf16(CHAR * szStrIn, UINT & nSize)
+{
+	wchar_t * pszOut = NULL;
+
+	if (szStrIn != NULL)
+	{
+
+#define SAFE_DELTA 2
+
+		int nInputStrLen	= (int)nSize;
+		int nOutputStrLen	= MultiByteToWideChar(CP_UTF8, 0, szStrIn, nInputStrLen, NULL, 0);
+
+		if (nOutputStrLen == 0)
+		{
+			return NULL;
+		}
+		
+		nOutputStrLen += SAFE_DELTA;
+
+		pszOut = (wchar_t*)malloc(nOutputStrLen * sizeof(wchar_t));
+
+		if (pszOut)
+		{
+			nSize = nOutputStrLen - SAFE_DELTA;
+			memset(pszOut, 0x00, nOutputStrLen * sizeof(wchar_t));
+
+			MultiByteToWideChar(CP_UTF8, 0, szStrIn, nInputStrLen, pszOut, nOutputStrLen);
+		}
+	}
+
+	return pszOut;
+}
+
 /// this handle is invoked wnen
 /// event is added to db
 int CMessagesHandler::EventAddHook(WPARAM wp, LPARAM lp)
@@ -293,10 +367,14 @@ BEGIN_PROTECT_AND_LOG_CODE
 			ptrHolder = CMessagesHandler::GetObject();
 
 			if (!szContactName || !ptrHolder)
+			{
 				return FALSE;
+			}
 
 			if (!ptrHolder->AllowReply(hContact))
+			{			
 				return FALSE;
+			}
 
 			TCHAR * lpMessage = NULL;
 
@@ -315,14 +393,32 @@ BEGIN_PROTECT_AND_LOG_CODE
 					CLuaBridge luaBridge;
 					CSarLuaScript script(luaBridge);
 
-					script.CompileScript(lpMessage, _tcslen(lpMessage));
+					UINT	nReplyScriptLength  = 0;
+					CHAR *	szReplyScript		= NULL;
+
+					szReplyScript = Utf16toUtf8(lpMessage, nReplyScriptLength);
+
+					if (szReplyScript != NULL)
+					{
+						UINT	nUserMessage  = 0;
+						CHAR *	szUserMessage = Utf16toUtf8(szMessage, nUserMessage);
+
+						UINT	nUserName  = 0;
+						CHAR *	szUserName = Utf16toUtf8(szContactName, nUserName);
+
+						script.CompileScript(szReplyScript, nReplyScriptLength);
 	
-					script.SelectScriptFunction("SAR");
-					script.AddParam((int)hContact);
-					script.AddParam((char *)dbei.pBlob);
-					script.AddParam(szContactName);
-					script.AddParam(dbei.szModule);	
-					script.Run();
+						script.SelectScriptFunction("SAR");
+						script.AddParam((int)hContact);
+						script.AddParam(szUserMessage);
+						script.AddParam(szUserName);
+						script.AddParam((char*)dbei.szModule);
+						script.Run();
+
+						free(szReplyScript);
+						free(szUserMessage);
+						free(szUserName);
+					}
 				}
 
 				mir_free(szMessage);

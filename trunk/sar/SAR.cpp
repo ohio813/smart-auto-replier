@@ -70,7 +70,7 @@ PLUGININFOEX pluginInfo =
 {
 	sizeof(PLUGININFOEX),
 	ICQPROTODECRSHORT,
-	PLUGIN_MAKE_VERSION(2, 0, 0, 2),
+	PLUGIN_MAKE_VERSION(2, 0, 0, 3),
 	ICQPROTODECR,
 	DEVNAME,
 	DEVMAIL,
@@ -78,13 +78,13 @@ PLUGININFOEX pluginInfo =
 	DEVWWW,
 	UNICODE_AWARE,	
 	0,
-#if defined( _UNICODE )
-	// {B9C9AC38-9D81-45D3-A9D7-67A7D8EA9D29} 
-	{ 0xb9c9ac38, 0x9d81, 0x45d3, { 0xa9, 0xd7, 0x67, 0xa7, 0xd8, 0xea, 0x9d, 0x29 } }
-#else
+//#if defined( _UNICODE )
+//	// {B9C9AC38-9D81-45D3-A9D7-67A7D8EA9D29} 
+//	{ 0xb9c9ac38, 0x9d81, 0x45d3, { 0xa9, 0xd7, 0x67, 0xa7, 0xd8, 0xea, 0x9d, 0x29 } }
+//#else
 	// {9E536082-017E-423B-BF4F-DEDFEB9B3B60}
 	{ 0x9e536082, 0x17e, 0x423b, { 0xbf, 0x4f, 0xde, 0xdf, 0xeb, 0x9b, 0x3b, 0x60 } }
-#endif
+//#endif
 };
 
 /// mapping into mirandaim.exe
@@ -208,6 +208,11 @@ BEGIN_PROTECT_AND_LOG_CODE
 	_tcscpy(sz, (g_bEnableMItem == true ? MENU_ITEM_DISABLE_CAPTION : MENU_ITEM_ENABLE_CAPTION));
 	g_mi.pszName = (char*)TranslateTS(sz);
 	g_mi.flags = CMIM_NAME;
+
+#ifdef _UNICODE
+	g_mi.flags |= CMIF_UNICODE;
+#endif
+
 #ifdef _DEBUG
 	int nretval = 
 #endif
@@ -333,7 +338,8 @@ int OnModulesLoaded(WPARAM wParam, LPARAM lParam)
 	CallService(MS_UPDATE_REGISTER, 0, (WPARAM)&update);
 
 	// Alternatively, to register a plugin with e.g. file ID 2254 on the file listing...
-	// CallService(MS_UPDATE_REGISTERFL, (WPARAM)2254, (LPARAM)&pluginInfo);
+	// CallService(MS_UPDATE_REGISTERFL, (WPARAM)2254, (LPARAM)&pluginInfo);	
+
 	return 0;
 }
 
@@ -381,8 +387,8 @@ BEGIN_PROTECT_AND_LOG_CODE
 		g_hHook[1] = HookEvent(ME_CLIST_STATUSMODECHANGE, OnStatusModeChanged);
 		g_hHook[2] = HookEvent(ME_SYSTEM_MODULESLOADED, OnModulesLoaded);
 
-		/// Yushenko Tak, Yanukovich - Mudak. (Ukranian revolution)
-		/// 
+		/// Yushenko Tak, Yanukovich - Mudak. (Orange revolution)
+		/// this was written in 2004-2005 in Kiev :)
 
 		/// create menu item for disabling / enabling plugin
 		CreateServiceFunction("AUR/MenuCommand", PluginMenuCommand);

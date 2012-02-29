@@ -28,7 +28,7 @@
 #include "scriptsreader.h"
 
 /// settings defs...
-#define SETTINGS_DB						TEXT("sar.cs")
+#define SETTINGS_DB						TEXT("sar.csu")
 #define READMEFILE						TEXT("sar.html")
 
 #define SETTINGS_HEADER_MAXVALENGTH		1024 * 1		/// 1 kb by def
@@ -36,8 +36,6 @@
 
 #define SETTINGS_DEF_COMMON_DWMION			1
 #define SETTINGS_DEF_COMMVALUE				0
-//#define SETTINGS_DEF_HEADER					"%currdate%, Hey! %username% user has left auto reply message:"
-//#define SETTINGS_DEF_MESSAGE				"Why do you write this:\r\n'%incomingmessage%' ?\r\nI am not near pc, read my mode msg:\r\n'%modemessage%'\r\n(%ownnickname%)"
 
 #define SETTINGS_DEF_MESSAGE				TEXT("function this.SAR(this, hUser, szMessage, szUser, szProtocol)\r\n    this:SendMessage(hUser, \"Here is my autoreply!\")\r\nend")
 #define SETTINGS_DEF_MESSAGE_RULE			TEXT("-- Main handler function written in Lua:\r\n\r\nfunction this.SAR(this, hUser, szMessage, szUser, szProtocol)\r\n    this:SendMessage(hUser, \"Here is my specific to user autoreply!\")\r\nend")

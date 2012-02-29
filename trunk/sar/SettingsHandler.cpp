@@ -71,7 +71,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 	bool bRetVal = false;
 	HANDLE hFile = CreateFile (m_szSettFileName, GENERIC_WRITE,
 							   FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,
-							   FILE_ATTRIBUTE_HIDDEN, NULL);
+							   FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile == NULL || hFile == INVALID_HANDLE_VALUE)
 		return bRetVal; ///
 	else
@@ -95,7 +95,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 	bool bRetVal = false;
 	HANDLE hFile = CreateFile (m_szSettFileName, GENERIC_READ,
 							   FILE_SHARE_READ, NULL, OPEN_EXISTING,
-							   FILE_ATTRIBUTE_HIDDEN, NULL);
+							   FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile == NULL || hFile == INVALID_HANDLE_VALUE)
 		return bRetVal; ///
 	else
