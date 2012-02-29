@@ -30,6 +30,9 @@
 extern INT g_nCurrentMode;
 extern CMessagesHandler *g_pMessHandler;
 
+wchar_t* Utf8toUtf16(CHAR * szStrIn, UINT & nSize);
+char* Utf16toUtf8(LPCWSTR lpwszStrIn, UINT & nSize);
+
 CSarLuaScript::CSarLuaScript(CLuaBridge & luaBridge) : CLuaScript(luaBridge)
 {
 	m_nFuncBaseIndex = RegisterFunction("SendMessage");
@@ -38,6 +41,8 @@ CSarLuaScript::CSarLuaScript(CLuaBridge & luaBridge) : CLuaScript(luaBridge)
 	RegisterFunction("SetMyStatus");
 	RegisterFunction("Wait");
 	RegisterFunction("FindUser");
+	RegisterFunction("SetVariable");
+	RegisterFunction("GetVariable");
 }
 
 CSarLuaScript::~CSarLuaScript(void)
@@ -62,6 +67,12 @@ int CSarLuaScript::ScriptCalling(CLuaBridge & luaBridge, int nFncNumber)
 
 	case 4:
 		return FindUser(luaBridge);
+
+	case 5:
+		return SetVariable(luaBridge);
+
+	case 6:
+		return GetVariable(luaBridge);
 	}
 
 	return FALSE;
@@ -70,7 +81,8 @@ int CSarLuaScript::ScriptCalling(CLuaBridge & luaBridge, int nFncNumber)
 int CSarLuaScript::SendMessage(CLuaBridge & luaBridge)
 {
     lua_State *pFunctionContext = (lua_State*)luaBridge;
-	  
+
+	UINT nMessageLen		= lua_strlen(pFunctionContext, -1);
 	const char * szMessage	= lua_tostring(pFunctionContext, -1);
 	int hUserToken			= (int)lua_tonumber(pFunctionContext, -2);
 
@@ -79,7 +91,18 @@ int CSarLuaScript::SendMessage(CLuaBridge & luaBridge)
 		return FALSE;
 	}
 
-	int nRetVal = CallContactService((HANDLE)hUserToken, PSS_MESSAGE, 0, reinterpret_cast<LPARAM>(szMessage));
+	int nRetVal = 0;
+
+#ifdef _UNICODE
+	/*/// as I am in unicode, I have to convert all strings from utf8 to utf16 :)
+	wchar_t * szwMessage = Utf8toUtf16((char*)szMessage, nMessageLen);*/
+
+	nRetVal = CallContactService((HANDLE)hUserToken, PSS_MESSAGE, PREF_UTF, reinterpret_cast<LPARAM>(szMessage));
+
+	/*free(szwMessage);*/
+#else
+	nRetVal = CallContactService((HANDLE)hUserToken, PSS_MESSAGE, 0, reinterpret_cast<LPARAM>(szMessage));
+#endif	
 				
     return FALSE;
 }
@@ -199,6 +222,88 @@ int CSarLuaScript::SetMyStatus(CLuaBridge & luaBridge)
 	return FALSE;
 }
 
+typedef map<wstring, wstring> MapOfStrings;
+
+MapOfStrings g_MapOfVariables;
+
+int CSarLuaScript::SetVariable(CLuaBridge & luaBridge)
+{
+	lua_State *pFunctionContext = (lua_State*)luaBridge;
+
+	UINT nNameLength		= lua_strlen(pFunctionContext, -2);
+	const char * szName		= lua_tostring(pFunctionContext, -2);
+
+	UINT nVariableLength	= lua_strlen(pFunctionContext, -1);
+	const char * szVariable	= lua_tostring(pFunctionContext, -1);
+
+	if (szName == NULL || szVariable == NULL)
+	{
+		return FALSE;
+	}
+	
+	wchar_t * szwName		= Utf8toUtf16((char*)szName, nNameLength);
+	wchar_t * szwVariable	= Utf8toUtf16((char*)szVariable, nVariableLength);
+
+	if (szwName && szwVariable)
+	{
+		g_MapOfVariables[szwName] = szwVariable;
+	}
+
+	if (szwName)
+	{
+		free(szwName);
+	}
+
+	if (szwVariable)
+	{
+		free(szwVariable);
+	}
+
+	return FALSE;
+}
+
+int CSarLuaScript::GetVariable(CLuaBridge & luaBridge)
+{
+	lua_State *pFunctionContext = (lua_State*)luaBridge;
+
+	UINT nNameLength		= lua_strlen(pFunctionContext, -1);
+	const char * szName		= lua_tostring(pFunctionContext, -1);
+
+	if (szName == NULL)
+	{
+		return FALSE;
+	}
+	
+	wchar_t * szwName		= Utf8toUtf16((char*)szName, nNameLength);
+
+	if (szwName)
+	{
+		MapOfStrings::iterator it = g_MapOfVariables.find(szwName);
+
+		if (it != g_MapOfVariables.end())
+		{
+			UINT nSize	 = 0;
+			char * szUtf = Utf16toUtf8(it->second.c_str(), nSize);
+
+			if (szUtf != NULL)
+			{
+				AddParam(szUtf);
+				free(szUtf);
+				free(szwName);
+
+				return TRUE;
+			}
+		}
+	}
+
+	if (szwName)
+	{
+		free(szwName);
+	}	
+
+	return FALSE;
+}
+
 int CSarLuaScript::Wait(CLuaBridge & luaBridge)
 {
 	lua_State *pFunctionContext = (lua_State*)luaBridge;
@@ -214,8 +319,8 @@ int CSarLuaScript::FindUser(CLuaBridge & luaBridge)
 {
 	lua_State *pFunctionContext = (lua_State*)luaBridge;
 
-	const TCHAR * szUser	 = (TCHAR*)lua_tostring(pFunctionContext, -2);
-	const TCHAR * szProtocol = (TCHAR*)lua_tostring(pFunctionContext, -1);	
+	const CHAR * szUser		= (CHAR*)lua_tostring(pFunctionContext, -2);
+	const CHAR * szProtocol = (CHAR*)lua_tostring(pFunctionContext, -1);	
 
 	if (szProtocol == NULL || szUser == NULL)
 	{
@@ -223,18 +328,18 @@ int CSarLuaScript::FindUser(CLuaBridge & luaBridge)
 	}
 
 	HANDLE	hContact		= reinterpret_cast<HANDLE>(CallService(MS_DB_CONTACT_FINDFIRST, 0, 0));
-	TCHAR*	szContactName	= NULL;
-	TCHAR*	szProto			= NULL;
+	CHAR*	szContactName	= NULL;
+	CHAR*	szProto			= NULL;
 	DWORD	wId				= 0;
 
 	while (hContact != NULL)
 	{
-		szContactName = g_pMessHandler->GetContactName(hContact);
-		szProto		  = (TCHAR*)CallService(MS_PROTO_GETCONTACTBASEPROTO, (WPARAM)hContact, 0);
+		szContactName = reinterpret_cast<CHAR*>(CallService(MS_CLIST_GETCONTACTDISPLAYNAME, (WPARAM)hContact, GCDNF_NOMYHANDLE));
+		szProto		  = (CHAR*)CallService(MS_PROTO_GETCONTACTBASEPROTO, (WPARAM)hContact, 0);
 
 		if (szProto && szContactName)
 		{
-			if ( (_tcscmp(szUser, szContactName)) == 0 && (_tcscmp(szProto, szProtocol) == 0))
+			if ( (strcmp(szUser, szContactName)) == 0 && (strcmp(szProto, szProtocol) == 0))
 			{
 				AddParam((int)hContact);
 				return TRUE;

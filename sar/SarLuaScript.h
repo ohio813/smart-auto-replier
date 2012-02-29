@@ -26,6 +26,11 @@
 #include "LuaBridge.h"
 #include "LuaScript.h"
 
+#include <map>
+#include <string>
+
+using namespace std;
+
 class CSarLuaScript : public CLuaScript
 {
 public:
@@ -38,6 +43,8 @@ private:
 	int SetMyStatus(CLuaBridge & luaBridge);
 	int Wait(CLuaBridge & luaBridge);
 	int FindUser(CLuaBridge & luaBridge);
+	int SetVariable(CLuaBridge & luaBridge);
+	int GetVariable(CLuaBridge & luaBridge);
 
 protected:
 	int ScriptCalling(CLuaBridge & luaBridge, int nFncNumber);	

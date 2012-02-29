@@ -24,7 +24,7 @@
 #include "RuleItem.h"
 #include <map>
 
-#define STORAGE_NAME	TEXT("sar.rs")			/// a def. name of a file that is storing settings
+#define STORAGE_NAME	TEXT("sar.rsu")			/// a def. name of a file that is storing settings
 typedef std::map<INT, RULE_ITEM> RulesHash;		/// storage representation in memory
 
 /// storage manager..
