@@ -227,7 +227,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 		bFileExists = false;
 	}
 
-	m_hFile = CreateFile (m_szSettFileName, GENERIC_READ|GENERIC_WRITE,  FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, (bFileExists ? OPEN_ALWAYS : CREATE_ALWAYS), FILE_ATTRIBUTE_HIDDEN, NULL);
+	m_hFile = CreateFile (m_szSettFileName, GENERIC_READ|GENERIC_WRITE,  FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, (bFileExists ? OPEN_ALWAYS : CREATE_ALWAYS), FILE_ATTRIBUTE_NORMAL, NULL);
 
 	if (m_hFile == INVALID_HANDLE_VALUE)
 	{/// show notification msg to user..
@@ -290,7 +290,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 			break;
 		}
 
-		memset(it.RuleName, 0, (nLength * sizeof(TCHAR) + (1 * sizeof(TCHAR))));
+		memset(it.RuleName, 0, (nLength + (1 * sizeof(TCHAR))));
 
 		bReaded = ReadFile(m_hFile, it.RuleName, nLength, &dwReaded, NULL);
 		if (bReaded == FALSE || dwReaded != (nLength))
@@ -320,7 +320,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 			break;
 		}
 
-		memset(it.ContactName, 0, (nLength * sizeof(TCHAR) + (1 * sizeof(TCHAR))));
+		memset(it.ContactName, 0, (nLength + (1 * sizeof(TCHAR))));
 		bReaded = ReadFile(m_hFile, it.ContactName, nLength, &dwReaded, NULL);
 
 		if (bReaded == FALSE || dwReaded != (nLength))
@@ -353,7 +353,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 			break;
 		}
 
-		memset(it.ReplyText, 0, (nLength * sizeof(TCHAR) + (1 * sizeof(TCHAR))));
+		memset(it.ReplyText, 0, (nLength + (1 * sizeof(TCHAR))));
 		bReaded = ReadFile (m_hFile, it.ReplyText, nLength, &dwReaded, NULL);
 
 		if (bReaded == FALSE || dwReaded != (nLength))

@@ -225,8 +225,8 @@ LANGUAGE LANG_FRENCH, SUBLANG_FRENCH_SWISS
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,0,0,2
- PRODUCTVERSION 2,0,0,2
+ FILEVERSION 2,0,0,3
+ PRODUCTVERSION 2,0,0,3
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -243,12 +243,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Volodymyr Shcherbyna, www.shcherbyna.com"
             VALUE "FileDescription", "Smart Auto Replier plugin for Miranda IM, http://shcherbyna.com/forum/viewforum.php?f=8"
-            VALUE "FileVersion", "2.0.0.2"
+            VALUE "FileVersion", "2.0.0.3"
             VALUE "InternalName", "sar.dll"
             VALUE "LegalCopyright", "Copyright (C) 2004 - 2012 by Volodymyr Shcherbyna"
             VALUE "OriginalFilename", "sar.dll"
             VALUE "ProductName", "sar.dll"
-            VALUE "ProductVersion", "2.0.0.2"
+            VALUE "ProductVersion", "2.0.0.3"
         END
     END
     BLOCK "VarFileInfo"
