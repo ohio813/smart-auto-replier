@@ -23,7 +23,7 @@
 
 #include "AggressiveOptimize.h"
 
-#undef _WIN32_WINNT 
+#undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0500
 
 #define WIN32_LEAN_AND_MEAN
@@ -65,7 +65,7 @@
 /// plugin's specific headers...
 #include "messageshandler.h"	/// messages handler
 #include "settingshandler.h"	/// settings handler
-#include "GUI/optionsDlg.h"			/// options handler
+#include "GUI/optionsDlg.h"		/// options handler
 #include "comlogging.h"			/// common loggin helper macroses
 #include "crushlog.h"			/// crush log handler
 
