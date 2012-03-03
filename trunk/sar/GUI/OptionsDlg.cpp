@@ -525,4 +525,5 @@ INT_PTR COptionsDlg::OnLbnDblclkListRules(WORD wNotifyCode, WORD wID, HWND hWndC
 BEGIN_PROTECT_AND_LOG_CODE
 	return OnBtnEditRuleClick(wNotifyCode, wID, hWndCtl, bHandled);
 END_PROTECT_AND_LOG_CODE
+	return 0;
 }

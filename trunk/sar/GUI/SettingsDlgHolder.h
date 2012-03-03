@@ -59,7 +59,7 @@ private:
 private:
 	bool m_bTabSelected;
 public:
-	static BOOL CALLBACK FakeDlgProc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam);
+	static INT_PTR CALLBACK FakeDlgProc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam);
 protected:
 	CTabCtrl m_tabCtrl;			/// holder of all settings dlg
 	CStatic m_statusMsg;

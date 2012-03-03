@@ -135,7 +135,7 @@ END_PROTECT_AND_LOG_CODE
 	return FALSE;
 }
 
-BOOL CALLBACK CSettingsDlgHolder::FakeDlgProc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK CSettingsDlgHolder::FakeDlgProc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 BEGIN_PROTECT_AND_LOG_CODE
 	CSettingsDlgHolder *pHandler = CSettingsDlgHolder::GetObject();	
@@ -143,7 +143,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 	if (pHandler == NULL)
 		return FALSE;
 
-	if (pHandler->m_bDestroying == true)
+	if (pHandler->m_bDestroying)
 		return FALSE;
 
 	if (pHandler->m_hWnd == NULL)
