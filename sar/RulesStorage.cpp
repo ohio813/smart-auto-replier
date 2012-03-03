@@ -432,6 +432,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 
 	return nRetVal;
 END_PROTECT_AND_LOG_CODE
+	return 0;
 }
 
 /// 
