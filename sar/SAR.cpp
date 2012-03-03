@@ -44,8 +44,8 @@
 #define GLOB_HOOKS			3
 
 /// global menu items strings...
-#define MENU_ITEM_DISABLE_CAPTION	TranslateTS(TEXT("Disable Smart Auto Replier"))
-#define MENU_ITEM_ENABLE_CAPTION	TranslateTS(TEXT("Enable Smart Auto Replier"))
+#define MENU_ITEM_DISABLE_CAPTION	LPGENT("Disable Smart Auto Replier")
+#define MENU_ITEM_ENABLE_CAPTION	LPGENT("Enable Smart Auto Replier")
 
 //#define 
 /// global data...
@@ -62,8 +62,10 @@ CCrushLog CRUSHLOGOBJ;						/// global object that handles all crushes
 LPTSTR g_strPluginName = TEXT(ICQPROTONAME);		/// global string that represents plugin name...
 INT	   g_nCurrentMode = 0;					/// current mode of a protocol == i duno which exactly protocol...
 HANDLE g_hAUR2User = NULL;					/// handle to proto service of "autoreply to this user"
+HANDLE hMenuCommand,hUserCommand;
 
 struct MM_INTERFACE mmi;
+int hLangpack = 0;
 
 /// forming an info structure
 PLUGININFOEX pluginInfo =
@@ -113,27 +115,17 @@ __declspec(dllexport) const MUUID * MirandaPluginInterfaces(void)
 static int OptionsInitialized(WPARAM wp, LPARAM lp)
 {	
 BEGIN_PROTECT_AND_LOG_CODE
-	LPTSTR lpszGroup = TranslateTS(TEXT("Plugins"));
 	OPTIONSDIALOGPAGE optsDialog = {0};
 	optsDialog.cbSize = sizeof(OPTIONSDIALOGPAGE);
 	optsDialog.hInstance = hInst;	
 	optsDialog.position = 910000000;
-	optsDialog.pszTemplate = (char*)MAKEINTRESOURCE(IDD_SDLGHOLDER);
-	TCHAR szMax[MAX_PATH] = {0};
-	_tcscpy(szMax, TranslateTS(TEXT(ICQPROTODECRSHORT)));
+	optsDialog.pszTemplate = MAKEINTRESOURCEA(IDD_SDLGHOLDER);
 	
-#ifdef _UNICODE
-	optsDialog.ptszGroup = lpszGroup;
-	optsDialog.ptszTitle = szMax;
-#else
-	optsDialog.pszTitle = (char*)szMax;
-	optsDialog.pszGroup = lpszGroup;	
-#endif
-	optsDialog.pfnDlgProc = (DLGPROC)&CSettingsDlgHolder::FakeDlgProc;
-	optsDialog.flags = ODPF_BOLDGROUPS/*|ODPF_EXPERTONLY*/; /// some lames are scaring that option...
-#ifdef _UNICODE
-	optsDialog.flags |= ODPF_UNICODE;
-#endif
+	optsDialog.ptszGroup = LPGENT("Plugins");
+	optsDialog.ptszTitle = _T(ICQPROTODECRSHORT);
+
+	optsDialog.pfnDlgProc = &CSettingsDlgHolder::FakeDlgProc;
+	optsDialog.flags = ODPF_BOLDGROUPS | ODPF_TCHAR /*|ODPF_EXPERTONLY*/; /// some lames are scaring that option...
 	
 	g_pSettingsDlg->m_bDestroying = false;
 	CallService(MS_OPT_ADDPAGE, wp, reinterpret_cast<LPARAM>(&optsDialog));
@@ -148,14 +140,7 @@ static int AURContactPreBuildMenu(WPARAM wParam, LPARAM lParam)
 	CRulesStorage & storage = g_pMessHandler->getSettings().getStorage();
 	bool bval = storage.RuleIsRegistered(lpContactName);
 
-	if (bval)
-	{
-		g_miAUR2This.flags = CMIM_FLAGS | CMIF_GRAYED;
-	}	
-	else
-	{
-		g_miAUR2This.flags = CMIM_FLAGS;
-	}
+	g_miAUR2This.flags = (bval ? (CMIM_FLAGS | CMIF_GRAYED) : CMIM_FLAGS);
 
 	CallService(MS_CLIST_MODIFYMENUITEM, (WPARAM)g_hAUR2User, (LPARAM)&g_miAUR2This);
 
@@ -164,7 +149,7 @@ static int AURContactPreBuildMenu(WPARAM wParam, LPARAM lParam)
 
 /// handler of clicking on menu item
 /// aur to this user...
-static int AUR2User(WPARAM wParam, LPARAM lParam)
+static INT_PTR AUR2User(WPARAM wParam, LPARAM lParam)
 {
 	CAddRuleDlg dlg;
 	RULE_ITEM item;
@@ -188,7 +173,7 @@ static int AUR2User(WPARAM wParam, LPARAM lParam)
 }
 
 /// handler of clicking on menu item enablr/disable plugin...
-static int PluginMenuCommand(WPARAM wParam, LPARAM lParam)
+static INT_PTR PluginMenuCommand(WPARAM wParam, LPARAM lParam)
 {
 BEGIN_PROTECT_AND_LOG_CODE
 	if (!g_pMessHandler)
@@ -204,14 +189,8 @@ BEGIN_PROTECT_AND_LOG_CODE
 	}
 
 	/// put here stuff to do
-	TCHAR sz[MAX_PATH] = {0};
-	_tcscpy(sz, (g_bEnableMItem == true ? MENU_ITEM_DISABLE_CAPTION : MENU_ITEM_ENABLE_CAPTION));
-	g_mi.pszName = (char*)TranslateTS(sz);
-	g_mi.flags = CMIM_NAME;
-
-#ifdef _UNICODE
-	g_mi.flags |= CMIF_UNICODE;
-#endif
+	g_mi.ptszName = (g_bEnableMItem ? MENU_ITEM_DISABLE_CAPTION : MENU_ITEM_ENABLE_CAPTION);
+	g_mi.flags = CMIM_NAME | CMIF_TCHAR;
 
 #ifdef _DEBUG
 	int nretval = 
@@ -391,21 +370,15 @@ BEGIN_PROTECT_AND_LOG_CODE
 		/// this was written in 2004-2005 in Kiev :)
 
 		/// create menu item for disabling / enabling plugin
-		CreateServiceFunction("AUR/MenuCommand", PluginMenuCommand);
+		hMenuCommand = CreateServiceFunction("AUR/MenuCommand", PluginMenuCommand);
 		ZeroMemory(&g_mi, sizeof(g_mi));
 		g_mi.cbSize = sizeof(g_mi);
 		g_mi.position = -0x7FFFFFFF;
 		g_mi.flags = 0;
 		g_mi.hIcon = LoadIcon(hInst, MAKEINTRESOURCE(IDI_SAR_ICON)); //LoadSkinnedIcon(IDI_AUR_ICON/*SKINICON_OTHER_MIRANDA*/);
 		bool bVal = g_pMessHandler->getSettings().getSettings().bEnabled;
-		TCHAR sz[MAX_PATH] = {0};
-		_tcscpy(sz, bVal ? MENU_ITEM_DISABLE_CAPTION : MENU_ITEM_ENABLE_CAPTION);
-#ifdef _UNICODE
-		g_mi.ptszName = TranslateTS(sz);
-		g_mi.flags = CMIF_UNICODE;
-#else
-		g_mi.pszName = (char*)TranslateTS(sz);
-#endif
+		g_mi.ptszName = (bVal ? MENU_ITEM_DISABLE_CAPTION : MENU_ITEM_ENABLE_CAPTION);
+		g_mi.flags = CMIF_TCHAR;
 		g_mi.pszService = "AUR/MenuCommand";
 
 		g_hMenuItem = (HANDLE)CallService(MS_CLIST_ADDMAINMENUITEM, 0, (LPARAM)&g_mi);
@@ -418,19 +391,16 @@ BEGIN_PROTECT_AND_LOG_CODE
 		g_miAUR2This.flags = 0;
 		g_miAUR2This.hIcon = LoadIcon(hInst, MAKEINTRESOURCE(IDI_SAR_ICON));
 		g_miAUR2This.pszContactOwner = NULL;
-#ifdef _UNICODE
-		g_miAUR2This.ptszName = TranslateTS(TEXT("&Smart Auto Reply to this user ..."));
-		g_miAUR2This.flags = CMIF_UNICODE;
-#else
-		g_miAUR2This.pszName = TranslateTS(TEXT("&Smart Auto Reply to this user ..."));
-#endif
-		CreateServiceFunction("AUR/AURToThis", AUR2User);
+		g_miAUR2This.ptszName = LPGENT("&Smart Auto Reply to this user ...");
+		g_miAUR2This.flags = CMIF_TCHAR;
+		hUserCommand = CreateServiceFunction("AUR/AURToThis", AUR2User);
 		g_miAUR2This.pszService = "AUR/AURToThis";
 		g_hAUR2User = (HANDLE)CallService(MS_CLIST_ADDCONTACTMENUITEM, 0, (LPARAM)&g_miAUR2This);
 		HookEvent(ME_CLIST_PREBUILDCONTACTMENU, AURContactPreBuildMenu);
 	}
 
-	CallService(MS_SYSTEM_GET_MMI, 0, (LPARAM)&mmi);
+	mir_getMMI(&mmi);
+	mir_getLP(&pluginInfo);
 
 END_PROTECT_AND_LOG_CODE
 	return FALSE;
@@ -442,6 +412,9 @@ extern "C" int __declspec(dllexport) Unload(void)
 BEGIN_PROTECT_AND_LOG_CODE
 	for (size_t i = 0; i < GLOB_HOOKS; i++)
 		UnhookEvent(g_hHook[i]);
+
+	DestroyServiceFunction(hMenuCommand);
+	DestroyServiceFunction(hUserCommand);
 
 	if (g_pSettingsDlg)
 	{

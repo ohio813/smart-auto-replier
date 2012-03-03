@@ -224,13 +224,8 @@ END_PROTECT_AND_LOG_CODE
 
 LPTSTR CMessagesHandler::GetContactName(HANDLE hContact)
 {
-	LPARAM lFlags = GCDNF_NOMYHANDLE;
-
-#ifdef _UNICODE
-	lFlags |= GCDNF_UNICODE;
-#endif
 BEGIN_PROTECT_AND_LOG_CODE
-	return reinterpret_cast<LPTSTR>(CallService(MS_CLIST_GETCONTACTDISPLAYNAME, (WPARAM)hContact, lFlags));
+	return reinterpret_cast<LPTSTR>(CallService(MS_CLIST_GETCONTACTDISPLAYNAME, (WPARAM)hContact, GCDNF_NOMYHANDLE | GCDNF_TCHAR));
 END_PROTECT_AND_LOG_CODE
 	return NULL;
 }
@@ -352,16 +347,11 @@ BEGIN_PROTECT_AND_LOG_CODE
 
 		if (dbei.pBlob)
 		{
-			LPARAM lParam = GCDNF_NOMYHANDLE;
-
-#ifdef _UNICODE
-			lParam |= GCDNF_UNICODE;
-#endif
 			CallService(MS_DB_EVENT_GET, lp, reinterpret_cast<LPARAM>(&dbei));
 
 			TCHAR * szMessage = DbGetEventTextT(&dbei, 0);
 
-			TCHAR * szContactName = reinterpret_cast<TCHAR*>(CallService(MS_CLIST_GETCONTACTDISPLAYNAME, wp, lParam));
+			TCHAR * szContactName = reinterpret_cast<TCHAR*>(CallService(MS_CLIST_GETCONTACTDISPLAYNAME, wp, GCDNF_NOMYHANDLE | GCDNF_TCHAR));
 
 			CMessagesHandler *ptrHolder = NULL;
 			ptrHolder = CMessagesHandler::GetObject();
@@ -437,7 +427,7 @@ END_PROTECT_AND_LOG_CODE
 
 void CMessagesHandler::WriteToHistory(LPTSTR lpMsg, HANDLE hContact)
 {
-	LPTSTR lp1 = TranslateTS(TEXT("Generated autoreply:\r\n"));
+	LPTSTR lp1 = TranslateT("Generated autoreply:\r\n");
 
 	LPTSTR lpszMess = new TCHAR[_tcslen(lpMsg) + _tcslen(lp1)];
 	if (lpszMess == NULL)

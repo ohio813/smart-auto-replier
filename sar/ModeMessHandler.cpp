@@ -63,16 +63,16 @@ LPTSTR CModeMessHandler::GetDefaultMessage(INT status)
 {
 	switch (status)
 	{
-		case ID_STATUS_AWAY:	return TranslateTS(TEXT("I've been away since %time%."));
-		case ID_STATUS_NA:		return TranslateTS(TEXT("Give it up, I'm not in!"));
-		case ID_STATUS_OCCUPIED: return TranslateTS(TEXT("Not right now."));
-		case ID_STATUS_DND: return TranslateTS(TEXT("Give a guy some peace, would ya?"));
-		case ID_STATUS_FREECHAT: return TranslateTS(TEXT("Well, I would talk to you if Miranda IM supported chat"));
-		case ID_STATUS_ONLINE: return TranslateTS(TEXT("Yep, I'm here."));
-		case ID_STATUS_OFFLINE: return TranslateTS(TEXT("Nope, not here."));
-		case ID_STATUS_INVISIBLE: return TranslateTS(TEXT("I'm hiding from the mafia."));
-		case ID_STATUS_ONTHEPHONE: return TranslateTS(TEXT("That'll be the phone."));
-		case ID_STATUS_OUTTOLUNCH: return TranslateTS(TEXT("Mmm...food."));
+		case ID_STATUS_AWAY:	return TranslateT("I've been away since %time%.");
+		case ID_STATUS_NA:		return TranslateT("Give it up, I'm not in!");
+		case ID_STATUS_OCCUPIED: return TranslateT("Not right now.");
+		case ID_STATUS_DND: return TranslateT("Give a guy some peace, would ya?");
+		case ID_STATUS_FREECHAT: return TranslateT("Well, I would talk to you if Miranda IM supported chat");
+		case ID_STATUS_ONLINE: return TranslateT("Yep, I'm here.");
+		case ID_STATUS_OFFLINE: return TranslateT("Nope, not here.");
+		case ID_STATUS_INVISIBLE: return TranslateT("I'm hiding from the mafia.");
+		case ID_STATUS_ONTHEPHONE: return TranslateT("That'll be the phone.");
+		case ID_STATUS_OUTTOLUNCH: return TranslateT("Mmm...food.");
 	}
 	return NULL;
 }

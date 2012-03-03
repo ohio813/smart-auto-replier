@@ -62,7 +62,7 @@ LRESULT CEditReplyDlg::OnBtnOKClicked(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /
 
 	if (nLength > SETTINGS_MESSAGE_MAXVALENGTH)	
 	{
-		MessageBox(TranslateTS(TEXT("message is too big")), g_strPluginName, MB_OK);
+		MessageBox(TranslateT("message is too big"), g_strPluginName, MB_OK);
 
 		return FALSE;
 	}
