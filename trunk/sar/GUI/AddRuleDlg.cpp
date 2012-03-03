@@ -56,7 +56,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 	
 	if (m_dwCRC32)
 	{
-		SetWindowText(TranslateTS(TEXT("Edit rule")));
+		SetWindowText(TranslateT("Edit rule"));
 		m_editRuleName.SetWindowText(m_item.RuleName);
 		m_editContactName.SetWindowText(m_item.ContactName);
 		m_editReplyText.SetWindowText(m_item.ReplyText);
@@ -103,7 +103,7 @@ LRESULT CAddRuleDlg::OnBtnOKClicked(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 {
 BEGIN_PROTECT_AND_LOG_CODE
 #define ON_ERROR_1BYTE(x) if (x == 1)	{								\
-					MessageBox(TranslateTS(TEXT("Please, specify longer contact name")), g_strPluginName, MB_OK);	\
+					MessageBox(TranslateT("Please, specify longer contact name"), g_strPluginName, MB_OK);	\
 					return FALSE;		}								
 
 #define ON_ERROR(x) MessageBox(TranslateTS(x), g_strPluginName, MB_OK);	\
@@ -149,7 +149,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 	{
 		if (nLength > SETTINGS_MESSAGE_MAXVALENGTH)
 		{
-			MessageBox(TranslateTS(TEXT("header is too big")), g_strPluginName, MB_OK);
+			MessageBox(TranslateT("header is too big"), g_strPluginName, MB_OK);
 			return FALSE;
 		}
 
@@ -177,7 +177,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 		DWORD dwCrc = g_pMessHandler->getSettings().AddReplyAction(m_item, b);
 		if (b)
 		{
-			MessageBox(TranslateTS(TEXT("Rule with the same contact name already exists")), g_strPluginName, MB_OK);
+			MessageBox(TranslateT("Rule with the same contact name already exists"), g_strPluginName, MB_OK);
 			return FALSE;
 		}
 		

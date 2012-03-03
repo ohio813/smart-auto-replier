@@ -103,11 +103,11 @@ void CCrushLog::InternalProtect(CHAR*	FunctionName, CHAR* FileName,
 	g_crushLog.SaveToLog(item);
 
 	TCHAR tch[MAX_PATH * 3] = {0};
-	_tcscpy(tch, TranslateTS(TEXT("Exception has occured please, analize or just send log file\n\r ")));
+	_tcscpy(tch, TranslateT("Exception has occured please, analize or just send log file\n\r "));
 	_tcscat(tch, CCrushLog::m_szLogPath);
-	_tcscat(tch, TranslateTS(TEXT("\r\n to developer.")));
+	_tcscat(tch, TranslateT("\r\n to developer."));
 
-	::MessageBox (NULL, tch, TranslateTS(TEXT("Smart Auto Replier crash. Send the log file to http://shcherbyna.com/forum/viewforum.php?f=8")), MB_OK);
+	::MessageBox (NULL, tch, TranslateT("Smart Auto Replier crash. Send the log file to http://shcherbyna.com/forum/viewforum.php?f=8"), MB_OK);
 }
 
 /// saving log information
@@ -148,10 +148,10 @@ void CCrushLog::SaveToLog(CRUSHLOG_ITEM & item)
 		strcat(tsz, item.FunctionName);
 		strcat(tsz, ("\n"));
 		CHAR tchtemp[MAX_PATH] = {0};
-		itoa(item.LineNumber, tchtemp, 10);
+		_itoa(item.LineNumber, tchtemp, 10);
 		strcat(tsz, tchtemp);
 		strcat(tsz, ("\n"));
-		itoa(item.LastError, tchtemp, 10);
+		_itoa(item.LastError, tchtemp, 10);
 		strcat(tsz, tchtemp);
 		strcat(tsz, ("\n"));
 		DWORD dw = 0;

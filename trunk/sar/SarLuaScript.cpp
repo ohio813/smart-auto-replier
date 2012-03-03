@@ -217,7 +217,7 @@ int CSarLuaScript::SetMyStatus(CLuaBridge & luaBridge)
 		nNewStatus = ID_STATUS_OUTTOLUNCH;
 	}
 
-	CallService(MS_CLIST_SETSTATUSMODE, (WPARAM)nNewStatus, (LPARAM)0);
+	CallService(MS_CLIST_SETSTATUSMODE, (WPARAM)nNewStatus, 0);
 
 	return FALSE;
 }

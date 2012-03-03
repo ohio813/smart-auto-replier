@@ -52,15 +52,16 @@
 #pragma warning(disable:4356)
 
 /// miranda's headers...
-#include "../miranda32/newpluginapi.h"
-#include "../miranda32/m_system.h"
-#include "../miranda32/m_protomod.h"
-#include "../miranda32/m_protosvc.h"
-#include "../miranda32/m_clist.h"
-#include "../miranda32/m_skin.h"
-#include "../miranda32/m_database.h"
-#include "../miranda32/m_options.h"
-#include "../miranda32/m_langpack.h"
+#define MIRANDA_CUSTOM_LP
+#include <newpluginapi.h>
+#include <m_system.h>
+#include <m_protomod.h>
+#include <m_protosvc.h>
+#include <m_clist.h>
+#include <m_skin.h>
+#include <m_database.h>
+#include <m_options.h>
+#include <m_langpack.h>
 
 /// plugin's specific headers...
 #include "messageshandler.h"	/// messages handler

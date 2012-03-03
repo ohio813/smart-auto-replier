@@ -93,15 +93,15 @@ BEGIN_PROTECT_AND_LOG_CODE
 	m_chDisWMB = GetDlgItem(IDC_CH_DISWHSB);
 	m_chSaveAURSToHist = GetDlgItem(IDC_CH_SAVE_AURS);
 
-	m_cbModeTypes.AddString(TranslateTS(TEXT("DND/NA/Away/Occupied modes")));
-	m_cbModeTypes.AddString(TranslateTS(TEXT("DND mode")));
-	m_cbModeTypes.AddString(TranslateTS(TEXT("NA mode")));
-	m_cbModeTypes.AddString(TranslateTS(TEXT("Away mode")));
-	m_cbModeTypes.AddString(TranslateTS(TEXT("Occupied mode")));
+	m_cbModeTypes.AddString(TranslateT("DND/NA/Away/Occupied modes"));
+	m_cbModeTypes.AddString(TranslateT("DND mode"));
+	m_cbModeTypes.AddString(TranslateT("NA mode"));
+	m_cbModeTypes.AddString(TranslateT("Away mode"));
+	m_cbModeTypes.AddString(TranslateT("Occupied mode"));
 
-	m_cbDisWMBTypes.AddString(TranslateTS(TEXT("Online/Free for chat modes")));
-	m_cbDisWMBTypes.AddString(TranslateTS(TEXT("Online mode")));
-	m_cbDisWMBTypes.AddString(TranslateTS(TEXT("Free for chat mode")));	
+	m_cbDisWMBTypes.AddString(TranslateT("Online/Free for chat modes"));
+	m_cbDisWMBTypes.AddString(TranslateT("Online mode"));
+	m_cbDisWMBTypes.AddString(TranslateT("Free for chat mode"));	
 
 	COMMON_RULE_ITEM & commRules = g_pMessHandler->getSettings().getStorage().getCommonRule();
 	REPLYER_SETTINGS & settings = g_pMessHandler->getSettings().getSettings();	
@@ -313,7 +313,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 
 	if (nLength > SETTINGS_MESSAGE_MAXVALENGTH)	
 	{
-		MessageBox(TranslateTS(TEXT("too big size")), g_strPluginName, MB_OK);
+		MessageBox(TranslateT("too big size"), g_strPluginName, MB_OK);
 		m_editMessageText.SetWindowText(m_szMessage);
 
 		return FALSE;
@@ -408,7 +408,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 		DWORD dwptr = static_cast<DWORD>(m_listRules.GetItemData(nIndex));
 		if (dwptr)/// we have ptr
 		{
-			if (MessageBox(TranslateTS(TEXT("Do you really want delete selected rule ?")), g_strPluginName, MB_YESNO) == IDNO)
+			if (MessageBox(TranslateT("Do you really want delete selected rule ?"), g_strPluginName, MB_YESNO) == IDNO)
 				return FALSE;
 
 			CRulesStorage & hash = g_pMessHandler->getSettings().getStorage();
@@ -514,13 +514,13 @@ END_PROTECT_AND_LOG_CODE
 LRESULT COptionsDlg::OnRefreshOptions(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 BEGIN_PROTECT_AND_LOG_CODE
-	MessageBox (TranslateTS(TEXT("Options are changed in another dialog")), g_strPluginName, MB_OK);
+	MessageBox (TranslateT("Options are changed in another dialog"), g_strPluginName, MB_OK);
 	///OnNotifyAboutChanges();
 END_PROTECT_AND_LOG_CODE
 	return FALSE;
 }
 
-LRESULT COptionsDlg::OnLbnDblclkListRules(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
+INT_PTR COptionsDlg::OnLbnDblclkListRules(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
 BEGIN_PROTECT_AND_LOG_CODE
 	return OnBtnEditRuleClick(wNotifyCode, wID, hWndCtl, bHandled);
