@@ -19,7 +19,7 @@
  *  along with SAR.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "stdafx.h"
+#include "..\stdafx.h"
 #include "editreplydlg.h"
 
 extern LPTSTR g_strPluginName;
