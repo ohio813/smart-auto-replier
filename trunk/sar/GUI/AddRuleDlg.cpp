@@ -19,8 +19,8 @@
  *  along with SAR.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "stdafx.h"
-#include "../resource.h"
+#include "..\stdafx.h"
+#include "..\resource.h"
 #include "addruledlg.h"
 #include "addruledlg.h"
 #include "selectuserdlg.h"

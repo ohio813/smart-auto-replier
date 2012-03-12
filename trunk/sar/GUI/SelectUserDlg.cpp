@@ -19,7 +19,7 @@
  *  along with SAR.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "stdafx.h"
+#include "..\stdafx.h"
 #include "selectuserdlg.h"
 #include "selectuserdlg.h"
 
