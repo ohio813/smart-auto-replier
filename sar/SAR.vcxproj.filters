@@ -29,7 +29,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ActionsHandler.h" />
-    <ClInclude Include="AggressiveOptimize.h" />
     <ClInclude Include="comfunc.h" />
     <ClInclude Include="comlogging.h" />
     <ClInclude Include="Crc32Static.h" />
@@ -72,6 +71,5 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="sar.ico" />
-    <None Include="sar.def" />
   </ItemGroup>
 </Project>
