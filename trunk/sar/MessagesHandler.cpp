@@ -443,7 +443,7 @@ void CMessagesHandler::WriteToHistory(LPTSTR lpMsg, HANDLE hContact)
 	dbei.flags = DBEF_READ;
 	dbei.szModule = (char*)CallService(MS_PROTO_GETCONTACTBASEPROTO,(WPARAM)hContact, 0);
 	dbei.timestamp = time(NULL);
-	dbei.cbBlob = _tcslen(lpszMess) + 1;
+	dbei.cbBlob = (DWORD) _tcslen(lpszMess) + 1;
 	dbei.pBlob = (PBYTE)lpszMess;
 	CallService(MS_DB_EVENT_ADD, (WPARAM)hContact, (LPARAM)&dbei);
 

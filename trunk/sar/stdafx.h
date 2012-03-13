@@ -21,8 +21,6 @@
 
 #pragma once
 
-#include "AggressiveOptimize.h"
-
 #undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0500
 
@@ -36,7 +34,6 @@
 #include <crtdbg.h>
 #include "resource.h"
 #include <tchar.h>
-#include <windowsx.h>
 
 #include <commctrl.h>
 
@@ -46,10 +43,6 @@
 
 #pragma comment(lib, "shlwapi.lib")
 #pragma comment(lib, "shell32.lib")
-
-#pragma warning(disable:4312)
-#pragma warning(disable:4267)
-#pragma warning(disable:4356)
 
 /// miranda's headers...
 #define MIRANDA_CUSTOM_LP

@@ -90,7 +90,7 @@ PLUGININFOEX pluginInfo =
 };
 
 /// mapping into mirandaim.exe
-BOOL WINAPI DllMain(HINSTANCE hinstDLL,DWORD fdwReason,LPVOID lpvReserved)
+extern "C" BOOL WINAPI DllMain(HINSTANCE hinstDLL,DWORD fdwReason,LPVOID lpvReserved)
 {	
 BEGIN_PROTECT_AND_LOG_CODE
 	hInst = hinstDLL;
@@ -99,14 +99,14 @@ BEGIN_PROTECT_AND_LOG_CODE
 END_PROTECT_AND_LOG_CODE
 }
 
-__declspec(dllexport) PLUGININFOEX* MirandaPluginInfoEx(DWORD mirandaVersion)
+extern "C" __declspec(dllexport) PLUGININFOEX* MirandaPluginInfoEx(DWORD mirandaVersion)
 {	
 	return &pluginInfo;
 }
 
 static const MUUID interfaces[] = {MIID_CHAT, MIID_SRMM, MIID_LAST};
 
-__declspec(dllexport) const MUUID * MirandaPluginInterfaces(void)
+extern "C" __declspec(dllexport) const MUUID * MirandaPluginInterfaces(void)
 {
 	return interfaces;
 }
