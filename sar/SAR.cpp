@@ -31,10 +31,15 @@
 
 /// let's advertise myselft and this plugin ;)
 #define ICQPROTONAME		"SAR"
-#if defined( _UNICODE )
-#define ICQPROTODECRSHORT   "Smart Auto Replier"
+#ifdef WIN64
+#define ICQPROTODECRSHORT   "Smart Auto Replier x64 (Unicode)"
+#define PLUGIN_UUID { 0x98f73c6, 0xd963, 0x4c2f, { 0x88, 0x38, 0x97, 0xa0, 0xec, 0x92, 0x69, 0xe0 } } // {098F73C6-D963-4C2F-8838-97A0EC9269E0}
+#elif( _UNICODE )
+#define ICQPROTODECRSHORT   "Smart Auto Replier (Unicode)"
+#define PLUGIN_UUID { 0x9e536082, 0x17e, 0x423b, { 0xbf, 0x4f, 0xde, 0xdf, 0xeb, 0x9b, 0x3b, 0x60 } } // {9E536082-017E-423B-BF4F-DEDFEB9B3B60}
 #else
 #define ICQPROTODECRSHORT   "Smart Auto Replier"
+#define PLUGIN_UUID { 0x1b7152c1, 0xcdef, 0x4d39, { 0xa2, 0x6e, 0xef, 0x71, 0x7a, 0x4c, 0x79, 0x21 } } // {1B7152C1-CDEF-4D39-A26E-EF717A4C7921}
 #endif
 #define ICQPROTODECR		"Plugin is able to reply on all incoming messages, making possible use of rules that are applied to specific contacts. Plugin allows to use Lua scripts as a rules, thus allowing user to make virtually any type of customizations."
 #define DEVNAME				"Volodymyr M. Shcherbyna"
@@ -72,7 +77,7 @@ PLUGININFOEX pluginInfo =
 {
 	sizeof(PLUGININFOEX),
 	ICQPROTODECRSHORT,
-	PLUGIN_MAKE_VERSION(2, 0, 0, 4),
+	PLUGIN_MAKE_VERSION(2, 0, 0, 5),
 	ICQPROTODECR,
 	DEVNAME,
 	DEVMAIL,
@@ -80,13 +85,7 @@ PLUGININFOEX pluginInfo =
 	DEVWWW,
 	UNICODE_AWARE,	
 	0,
-//#if defined( _UNICODE )
-//	// {B9C9AC38-9D81-45D3-A9D7-67A7D8EA9D29} 
-//	{ 0xb9c9ac38, 0x9d81, 0x45d3, { 0xa9, 0xd7, 0x67, 0xa7, 0xd8, 0xea, 0x9d, 0x29 } }
-//#else
-	// {9E536082-017E-423B-BF4F-DEDFEB9B3B60}
-	{ 0x9e536082, 0x17e, 0x423b, { 0xbf, 0x4f, 0xde, 0xdf, 0xeb, 0x9b, 0x3b, 0x60 } }
-//#endif
+	PLUGIN_UUID
 };
 
 /// mapping into mirandaim.exe
@@ -122,7 +121,7 @@ BEGIN_PROTECT_AND_LOG_CODE
 	optsDialog.pszTemplate = MAKEINTRESOURCEA(IDD_SDLGHOLDER);
 	
 	optsDialog.ptszGroup = LPGENT("Plugins");
-	optsDialog.ptszTitle = _T(ICQPROTODECRSHORT);
+	optsDialog.ptszTitle = LPGENT("Smart Auto Replier");
 
 	optsDialog.pfnDlgProc = &CSettingsDlgHolder::FakeDlgProc;
 	optsDialog.flags = ODPF_BOLDGROUPS | ODPF_TCHAR /*|ODPF_EXPERTONLY*/; /// some lames are scaring that option...
@@ -290,35 +289,37 @@ END_PROTECT_AND_LOG_CODE
 
 int OnModulesLoaded(WPARAM wParam, LPARAM lParam)
 {
-	Update update = {0}; // for c you'd use memset or ZeroMemory...
-	char szVersion[16];
+	if(ServiceExists(MS_UPDATE_REGISTER)) 
+	{
+		Update update = {0}; // for c you'd use memset or ZeroMemory...
+		char szVersion[16];
 
-	update.cbSize = sizeof(Update);
+		update.cbSize = sizeof(Update);
 
-	update.szComponentName	= pluginInfo.shortName;
-	update.pbVersion		= (BYTE*)CreateVersionStringPluginEx(&pluginInfo, szVersion);
-	update.cpbVersion		= strlen((char*)update.pbVersion);
+		update.szComponentName	= pluginInfo.shortName;
+		update.pbVersion		= (BYTE*)CreateVersionStringPluginEx(&pluginInfo, szVersion);
+		update.cpbVersion		= (int) strlen((char *)update.pbVersion);
 
+		update.szUpdateURL = UPDATER_AUTOREGISTER;
+
+		update.szBetaVersionURL = "http://code.google.com/p/smart-auto-replier/downloads/list";
+#ifdef WIN64
+		update.szBetaUpdateURL = "http://smart-auto-replier.googlecode.com/files/sar-%VERSION%-x64.zip";
+		update.pbBetaVersionPrefix = (BYTE*) "Smart Auto Replier (x64) ";
+#else
+		update.szBetaUpdateURL = "http://smart-auto-replier.googlecode.com/files/sar-%VERSION%-x86.zip";
+		update.pbBetaVersionPrefix = (BYTE*) "Smart Auto Replier ";
+#endif
+		update.cpbBetaVersionPrefix = (int) (strlen((char *)update.pbBetaVersionPrefix));
 	// these are the three lines that matter - the archive, the page containing the version string, and the text (or data) 
 	// before the version that we use to locate it on the page
 	// (note that if the update URL and the version URL point to standard file listing entries, the backend xml
 	// data will be used to check for updates rather than the actual web page - this is not true for beta urls)
-	//update.szUpdateURL		= "http://www.shcherbyna.com/files/sar/SAR.zip";
-	//update.szVersionURL		= "http://www.shcherbyna.com/files/sar/SAR.html";
 
-	update.szUpdateURL = "http://addons.miranda-im.org/details.php?action=viewfile&id=1609";
-	
-	//update.pbVersionPrefix	= (BYTE *)"SAR version ";
-	
-	//update.cpbVersionPrefix = strlen((char *)update.pbVersionPrefix);
+		update.szBetaChangelogURL = "http://code.google.com/p/smart-auto-replier/source/list";
 
-	// do the same for the beta versions of the above struct members if you wish to allow beta updates from another URL
-
-	CallService(MS_UPDATE_REGISTER, 0, (WPARAM)&update);
-
-	// Alternatively, to register a plugin with e.g. file ID 2254 on the file listing...
-	// CallService(MS_UPDATE_REGISTERFL, (WPARAM)2254, (LPARAM)&pluginInfo);	
-
+		CallService(MS_UPDATE_REGISTER,0,(WPARAM)&update);
+	}
 	return 0;
 }
 
